@@ -15,7 +15,8 @@
     "test:http": "playwright test tests/http",
     "test:http:cloud": "node scripts/testing/cloud-http-test.mjs",
     "test:http:cloud:cleanup": "node scripts/testing/cloud-test-cleanup.mjs",
-    "demo:start": "node scripts/demo/start.mjs"
+    "demo:start": "node scripts/demo/start.mjs",
+    "demo:tunnel": "cloudflared tunnel --protocol http2 --no-autoupdate run --token-file \"$HOME/.cloudflared/forma-demo.token\""
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.74",

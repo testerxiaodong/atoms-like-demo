@@ -31,3 +31,20 @@
 5. 展示期间保持本机、应用、代理（如使用）和隧道在线。链接持有者登录后都能使用模型额度；结束展示即关闭隧道。
 
 自动化覆盖登录鉴权、项目隔离、并发拒绝、超时信号后的名额释放及重新运行。真实第三方登录需目标账号完成一次验收。
+
+## 固定域名与重启
+
+当前演示入口：https://forma.coder-cengdong.site
+
+使用 Cloudflare 命名隧道 `forma-demo`，转发到本机 `http://localhost:3002`。域名与隧道不会随进程重启变化。凭据保存在本机 `~/.cloudflared/forma-demo.token`，权限 600，不在仓库中。
+
+重启后，在项目目录分别打开两个终端运行：
+
+```sh
+npm run demo:start
+npm run demo:tunnel
+```
+
+代码有更新时先执行 `npm run build`。`.env.demo` 的 `DEMO_ORIGIN` 设为 `https://forma.coder-cengdong.site`。Supabase Site URL 使用同一固定地址，Redirect URLs 包含其 `/auth/callback`。Google OAuth 客户端仍回调 Supabase，无需修改。
+
+结束演示时在两个终端按 Ctrl+C。电脑关机或服务停止时网站暂不可用；重新运行以上命令后原链接恢复，无需重新发链接。当前没有设置开机自动运行。
