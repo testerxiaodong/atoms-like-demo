@@ -1,16 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { demoUserAllowed, demoOrigin } from "@/lib/demo-access";
+import { demoOrigin } from "@/lib/demo-access";
 import { isLoopbackRequest } from "@/lib/agent/local-codex";
 import { isLocalCodex } from "@/lib/env";
 afterEach(() => vi.unstubAllEnvs());
-it("demo fails closed without an allowlist and matches exact IDs", () => {
-  vi.stubEnv("FORMA_DEMO", "1");
-  vi.stubEnv("DEMO_ALLOWED_USER_IDS", "");
-  expect(demoUserAllowed("owner")).toBe(false);
-  vi.stubEnv("DEMO_ALLOWED_USER_IDS", " owner, second ");
-  expect(demoUserAllowed("owner")).toBe(true);
-  expect(demoUserAllowed("own")).toBe(false);
-});
 it("requires the exact configured HTTPS origin, including for loopback-forwarded requests", () => {
   vi.stubEnv("FORMA_DEMO", "1");
   vi.stubEnv("DEMO_ORIGIN", "https://demo.example");
@@ -45,7 +37,7 @@ it("production subscription mode needs explicit demo config and remains disabled
   expect(isLocalCodex()).toBe(false);
   vi.stubEnv("FORMA_DEMO", "1");
   vi.stubEnv("DEMO_ORIGIN", "https://demo.example");
-  vi.stubEnv("DEMO_ALLOWED_USER_IDS", "owner");
+
   expect(isLocalCodex()).toBe(true);
   vi.stubEnv("VERCEL", "1");
   expect(isLocalCodex()).toBe(false);

@@ -19,9 +19,7 @@ export function isLocalCodex() {
   return (
     process.env.AGENT_BACKEND === "codex-local" &&
     (process.env.NODE_ENV !== "production" ||
-      (demoEnabled() &&
-        !!demoOrigin() &&
-        !!process.env.DEMO_ALLOWED_USER_IDS)) &&
+      (demoEnabled() && !!demoOrigin())) &&
     !process.env.VERCEL
   );
 }

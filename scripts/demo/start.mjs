@@ -6,11 +6,10 @@ loadEnvFile(".env.local");
 loadEnvFile(".env.demo");
 if (
   process.env.FORMA_DEMO !== "1" ||
-  !process.env.DEMO_ALLOWED_USER_IDS?.trim() ||
   !/^https:\/\/[^/]+\/?$/.test(process.env.DEMO_ORIGIN || "")
 ) {
   throw new Error(
-    "Configure FORMA_DEMO, DEMO_ALLOWED_USER_IDS and HTTPS DEMO_ORIGIN in .env.demo first.",
+    "Configure FORMA_DEMO, and HTTPS DEMO_ORIGIN in .env.demo first.",
   );
 }
 // Administrative database credentials are never passed to the application.

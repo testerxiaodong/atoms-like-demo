@@ -1,4 +1,3 @@
-import { demoUserAllowed } from "@/lib/demo-access";
 import "server-only";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -24,7 +23,6 @@ export async function authenticated() {
     error,
   } = await db.auth.getUser();
   if (error || !user) throw new ApiError("登录已过期，请重新登录。", 401);
-  if (!demoUserAllowed(user.id)) throw new ApiError("此演示仅限指定账号使用。", 403);
   return { db, user };
 }
 
@@ -56,7 +54,10 @@ export function databaseError(
   error: { message: string; code?: string } | null,
 ) {
   if (!error) return;
-  console.error("Database operation failed", { code: error.code, message: error.message });
+  console.error("Database operation failed", {
+    code: error.code,
+    message: error.message,
+  });
   const code = error.message;
   if (code.includes("REVISION_CONFLICT"))
     throw new ApiError(
@@ -73,8 +74,13 @@ export function databaseError(
   if (code.includes("UNAUTHORIZED")) throw new ApiError("请重新登录。", 401);
   if (["PGRST202", "PGRST205", "42883", "42P01"].includes(error.code ?? ""))
     throw new ApiError("数据库缺少所需的表或函数，请检查数据库迁移。", 503);
-  if (/fetch failed|network|timeout|timed out|connection|502|503|504/i.test(code))
-    throw new ApiError("数据库连接暂时异常，请稍后重试；刷新可确认是否已保存。", 503);
+  if (
+    /fetch failed|network|timeout|timed out|connection|502|503|504/i.test(code)
+  )
+    throw new ApiError(
+      "数据库连接暂时异常，请稍后重试；刷新可确认是否已保存。",
+      503,
+    );
   throw new ApiError("数据操作未完成，请刷新确认最新状态后重试。", 500);
 }
 

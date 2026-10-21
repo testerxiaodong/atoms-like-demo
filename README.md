@@ -275,7 +275,7 @@ npm run test:e2e:report
 
 ## 临时个人演示（本机 Codex + HTTPS 隧道）
 
-此模式只供已登录 Codex 的账号本人演示。它依赖本机在线和订阅可用额度，不能替代稳定的模型 API 部署；Vercel 不运行本机 CLI。
+此模式用于受邀账号的临时演示，模型运行在已登录 Codex 的本机。它依赖本机在线和订阅可用额度，不能替代稳定的模型 API 部署；Vercel 不运行本机 CLI。
 
 1. 安装依赖并 `npm run build`，保持 `.env.local` 中的 Supabase 配置与本机 Codex 登录有效。
 2. `cloudflared tunnel --url http://localhost:3002 --protocol http2`，取得临时 HTTPS 域名。
@@ -283,13 +283,14 @@ npm run test:e2e:report
 
 ```dotenv
 FORMA_DEMO=1
-DEMO_ALLOWED_USER_IDS=你的Supabase用户UUID
 DEMO_ORIGIN=https://你的临时域名
 # 如本机访问 Supabase 需要代理，可选配置：
 # DEMO_PROXY=http://127.0.0.1:7890
 ```
 
 4. 在 Supabase Auth Redirect URLs 添加精确的 `https://你的临时域名/auth/callback`，保留原有回调。
-5. `npm run demo:start`，使用自己的 Google 账号登录临时地址。接口仅允许指定用户，生成校验精确来源，Codex 同时只运行一个任务。
+5. `npm run demo:start`，使用自己的 Google 账号登录临时地址。所有登录账号均可体验，接口仍校验登录与项目所有权，生成校验精确来源，Codex 同时只运行一个任务。
 
 停止演示时关闭应用与隧道，并移除 Supabase 中对应临时回调。重开隧道若域名变化，更新 `.env.demo` 和回调后重启应用。不要提交 `.env.demo`、数据库管理密钥或 Codex 登录凭据。临时隧道没有可用性保证，长任务和流式传输应每次实际验证；正式交付使用模型 API 与稳定部署。
+
+演示访问方式与 Google OAuth 配置详见 [演示账号配置](docs/DEMO_ACCESS.md)。
