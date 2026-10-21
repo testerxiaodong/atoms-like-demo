@@ -19,8 +19,13 @@ import {
   Square,
 } from "lucide-react";
 import { AgentActivity } from "./agent-activity";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import type { FileMap, Message, Project, Version } from "@/lib/types";
+import { pollRun } from "@/lib/agent/poll-run";
+import type { AgentEvent } from "@/lib/types";
 import { readAgentStream } from "@/lib/stream";
 const Sandbox = dynamic(() => import("./sandbox"), {
   ssr: false,
@@ -135,11 +140,13 @@ export function Workspace({
         const result = await api(
           `/api/projects/${project.id}/runs/${project.active_run_id}`,
         );
+        if (!stopped && result.steps) setSteps(result.steps);
         if (result.run.status !== "running") {
           const data = await api(`/api/projects/${project.id}`);
           if (!stopped) {
             adopt(data.project);
             setMessages(data.messages);
+            setSteps([]);
           }
         }
       } catch (e) {
@@ -213,7 +220,7 @@ export function Workspace({
         const data = await res.json();
         throw new Error(data.error);
       }
-      await readAgentStream(res, (event) => {
+      const onEvent = (event: AgentEvent) => {
         if (event.type === "run") {
           setRunId(event.id);
           if (stopRequested.current) {
@@ -234,7 +241,13 @@ export function Workspace({
           setSteps([]);
         }
         if (event.type === "error") throw new Error(event.message);
-      });
+      };
+      if (res.status === 202) {
+        const { runId: queuedId } = await res.json();
+        await pollRun(project.id, queuedId, controller.signal, onEvent);
+      } else {
+        await readAgentStream(res, onEvent);
+      }
     } catch (e) {
       setError(
         controller.signal.aborted
@@ -353,9 +366,9 @@ export function Workspace({
         </Link>
         <span className="header-divider" />
         <strong>{project.name}</strong>
-        <span className="status-pill">
+        <Badge className="status-pill">
           {isDemo ? "示例项目" : `v${project.revision}`}
-        </span>
+        </Badge>
         <div className="header-actions">
           <span className="save-status">
             {isDemo
@@ -473,7 +486,7 @@ export function Workspace({
                 void send();
               }}
             >
-              <textarea
+              <Textarea
                 aria-label="给构建助手发消息"
                 placeholder={
                   isDemo
@@ -502,7 +515,8 @@ export function Workspace({
                   Enter 发送 · Shift+Enter 换行
                 </span>
                 {sending || runId || project.active_run_id ? (
-                  <button
+                  <Button
+                    size="icon"
                     type="button"
                     className="send-button stop-button"
                     aria-label={stopping ? "正在停止" : "停止任务"}
@@ -515,9 +529,11 @@ export function Workspace({
                     ) : (
                       <Square size={15} fill="currentColor" />
                     )}
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
+                    size="icon"
+                    type="submit"
                     className="send-button"
                     aria-label="发送消息"
                     disabled={
@@ -530,7 +546,7 @@ export function Workspace({
                     }
                   >
                     <ArrowUp size={17} />
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -542,20 +558,24 @@ export function Workspace({
         <section className="output-panel">
           <div className="preview-toolbar">
             <div className="view-tabs">
-              <button
+              <Button
+                variant="ghost"
+                aria-pressed={tab === "preview"}
                 className={tab === "preview" ? "active" : ""}
                 onClick={() => setTab("preview")}
               >
                 <Eye size={15} />
                 预览
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                aria-pressed={tab === "code"}
                 className={tab === "code" ? "active" : ""}
                 onClick={() => setTab("code")}
               >
                 <Code2 size={15} />
                 代码
-              </button>
+              </Button>
             </div>
             <span className="preview-url">
               {selected ? `历史版本 v${selected.number}` : "应用预览"}
@@ -571,20 +591,30 @@ export function Workspace({
                   独立预览
                 </a>
               )}
-              <button
-                aria-label="桌面预览"
-                className={!mobile ? "active" : ""}
-                onClick={() => setMobile(false)}
-              >
-                <Monitor size={15} />
-              </button>
-              <button
-                aria-label="手机预览"
-                className={mobile ? "active" : ""}
-                onClick={() => setMobile(true)}
-              >
-                <Smartphone size={15} />
-              </button>
+              <Tooltip label="桌面宽度">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="桌面预览"
+                  aria-pressed={!mobile}
+                  className={!mobile ? "active" : ""}
+                  onClick={() => setMobile(false)}
+                >
+                  <Monitor size={15} />
+                </Button>
+              </Tooltip>
+              <Tooltip label="手机宽度 · 390px">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="手机预览"
+                  aria-pressed={mobile}
+                  className={mobile ? "active" : ""}
+                  onClick={() => setMobile(true)}
+                >
+                  <Smartphone size={15} />
+                </Button>
+              </Tooltip>
             </div>
           </div>
           <div className="sandbox-frame">

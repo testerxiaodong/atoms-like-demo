@@ -1,0 +1,8 @@
+.env*
+.demo
+cloud-test-results
+playwright-report
+test-results
+.next-e2e
+coverage
+.git

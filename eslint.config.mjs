@@ -6,6 +6,9 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     ".next/**",
+    ".demo/**",
+    ".vercel/**",
+    "cloud-test-results/**",
     ".next-e2e/**",
     "node_modules/**",
     "next-env.d.ts",

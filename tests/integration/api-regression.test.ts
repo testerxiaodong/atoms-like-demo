@@ -3,7 +3,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 const mocks = vi.hoisted(() => ({ owned: vi.fn(), generate: vi.fn(), rpc: vi.fn(), from: vi.fn() }));
 vi.mock("@/lib/projects/api", async (original) => ({ ...await original<object>(), ownedProject: mocks.owned }));
-vi.mock("@/lib/env", () => ({ hasModel: () => true, isLocalCodex: () => true }));
+vi.mock("@/lib/env", () => ({ hasModel: () => true, isRemoteCodex: () => false, isLocalCodex: () => true }));
 vi.mock("@/lib/agent/local-codex", async (original) => ({ ...await original<object>(), runLocalCodex: mocks.generate }));
 import { databaseError, errorResponse } from "@/lib/projects/api";
 import { POST as chat } from "@/app/api/projects/[id]/chat/route";

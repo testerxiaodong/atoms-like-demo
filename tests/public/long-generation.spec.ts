@@ -6,6 +6,7 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
   context,
   baseURL,
 }, testInfo) => {
+  test.setTimeout(720_000);
   const url = new URL(baseURL!);
   const auth = createServerClient(
     process.env.CLOUD_TEST_URL!,
@@ -35,6 +36,8 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
   if (error) throw error;
   await page.addInitScript(() => {
     type Metrics = {
+      mode?: "polling";
+      polls?: number;
       started: number;
       headersMs: number;
       chunks: number;
@@ -52,6 +55,29 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
     }).observe({ type: "longtask", buffered: true });
     const original = window.fetch;
     window.fetch = async (...args) => {
+      if (
+        String(args[0]).includes("/runs/") &&
+        (!args[1]?.method || args[1].method === "GET")
+      ) {
+        const response = await original(...args);
+        if (state.stream?.mode === "polling" && response.ok) {
+          const data = await response.clone().json();
+          const stats = state.stream,
+            now = performance.now();
+          stats.polls = (stats.polls ?? 0) + 1;
+          stats.maxGapMs = Math.max(stats.maxGapMs, now - stats.last);
+          stats.last = now;
+          if (data.run?.status === "completed") {
+            stats.terminal = "done";
+            stats.finished = now;
+          }
+          if (data.run?.status === "failed") {
+            stats.terminal = "error";
+            stats.error = data.run.error;
+          }
+        }
+        return response;
+      }
       if (!String(args[0]).endsWith("/chat")) return original(...args);
       const started = performance.now();
       const stats: Metrics = {
@@ -69,6 +95,11 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
       try {
         const response = await original(...args);
         stats.headersMs = performance.now() - started;
+        if (response.status === 202) {
+          stats.mode = "polling";
+          stats.polls = 0;
+          return response;
+        }
         let pending = "";
         const decoder = new TextDecoder();
         const body = response.body!.pipeThrough(
@@ -142,7 +173,7 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
                 : "")
             );
           }),
-        { timeout: 330_000, intervals: [2000] },
+        { timeout: 650_000, intervals: [2000] },
       )
       .not.toBe("");
     const terminal = await page.evaluate(
@@ -160,6 +191,8 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
           window as unknown as {
             __publicRegression: {
               stream: {
+                mode?: "polling";
+                polls?: number;
                 started: number;
                 last: number;
                 headersMs: number;
@@ -236,7 +269,9 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
         2,
       ),
     );
-    expect(stats.stream.heartbeats).toBeGreaterThanOrEqual(10);
+    if (stats.stream.mode === "polling")
+      expect(stats.stream.polls).toBeGreaterThanOrEqual(10);
+    else expect(stats.stream.heartbeats).toBeGreaterThanOrEqual(10);
     expect(stats.stream.maxGapMs).toBeLessThan(25_000);
     // A fast success must not be reported as proof of long-connection coverage.
     expect(

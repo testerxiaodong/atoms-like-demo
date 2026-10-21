@@ -21,7 +21,11 @@
     "demo:stop": "node scripts/demo/manage.mjs stop",
     "demo:status": "node scripts/demo/manage.mjs status",
     "demo:serve": "node scripts/demo/start.mjs",
-    "test:public:projects": "node scripts/testing/cloud-http-test.mjs --public-demo --grep \"project creation latency\""
+    "test:public:projects": "node scripts/testing/cloud-http-test.mjs --public-demo --grep \"project creation latency\"",
+    "worker:run": "node scripts/worker/start.mjs",
+    "worker:start": "node scripts/worker/manage.mjs start",
+    "worker:stop": "node scripts/worker/manage.mjs stop",
+    "worker:status": "node scripts/worker/manage.mjs status"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.74",

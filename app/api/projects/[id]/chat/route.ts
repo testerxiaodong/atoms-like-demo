@@ -7,7 +7,7 @@ import {
   runLocalCodex,
 } from "@/lib/agent/local-codex";
 import { z } from "zod";
-import { hasModel, isLocalCodex } from "@/lib/env";
+import { hasModel, isLocalCodex, isRemoteCodex } from "@/lib/env";
 import {
   ApiError,
   ownedProject,
@@ -21,7 +21,7 @@ import { validateFiles } from "@/lib/projects/files";
 import type { AgentEvent, Message } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 660;
+export const maxDuration = 120;
 
 export async function POST(
   request: Request,
@@ -50,6 +50,31 @@ export async function POST(
       .order("created_at", { ascending: false })
       .limit(12);
     databaseError(historyError);
+    const prompt = [
+      `Current project: ${project.name}; revision: ${project.revision}.`,
+      `Files: ${JSON.stringify(Object.keys(project.working_files))}`,
+      `Recent conversation (current files take precedence):\n${(
+        (history as Pick<Message, "role" | "content">[]) ?? []
+      )
+        .reverse()
+        .map((m) => `${m.role}: ${m.content.slice(0, 1800)}`)
+        .join("\n")}`,
+      `Current request:\n${input.prompt}`,
+    ].join("\n\n");
+    if (isRemoteCodex()) {
+      const { data: queued, error } = await db.rpc("enqueue_generation", {
+        p_project_id: project.id,
+        p_request_key: input.requestKey,
+        p_revision: input.revision,
+        p_prompt: input.prompt,
+        p_context: prompt,
+      });
+      databaseError(error);
+      return Response.json(
+        { runId: queued.id },
+        { status: 202, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     const { data: run, error: startError } = await db.rpc("start_run", {
       p_project_id: project.id,
       p_request_key: input.requestKey,
@@ -98,17 +123,6 @@ export async function POST(
         emit({ type: "run", id: run.id });
         try {
           signal.throwIfAborted();
-          const prompt = [
-            `Current project: ${project.name}; revision: ${project.revision}.`,
-            `Files: ${JSON.stringify(Object.keys(project.working_files))}`,
-            `Recent conversation (current files take precedence):\n${(
-              (history as Pick<Message, "role" | "content">[]) ?? []
-            )
-              .reverse()
-              .map((m) => `${m.role}: ${m.content.slice(0, 1800)}`)
-              .join("\n")}`,
-            `Current request:\n${input.prompt}`,
-          ].join("\n\n");
           onStep("正在处理消息");
           let text = "";
           let files = project.working_files;

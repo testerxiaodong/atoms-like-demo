@@ -24,7 +24,8 @@ const admin = createClient(url, secret.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 const publicOrigin = publicMode
-  ? parse(await readFile(".env.demo")).DEMO_ORIGIN
+  ? process.env.PUBLIC_TEST_ORIGIN ||
+    parse(await readFile(".env.demo")).DEMO_ORIGIN
   : "";
 if (publicMode) {
   assert(
@@ -35,7 +36,7 @@ if (publicMode) {
 }
 const runId = randomUUID();
 const users = [];
-const tables = ["projects", "versions", "messages", "runs"];
+const tables = ["projects", "versions", "messages", "runs", "generation_jobs"];
 await mkdir("cloud-test-results", { recursive: true });
 const manifestPath = `cloud-test-results/cloud-${runId}.json`;
 const manifest = {
@@ -55,7 +56,7 @@ async function rows(table) {
     const { data, error } = await admin
       .from(table)
       .select("*")
-      .order("id")
+      .order(table === "generation_jobs" ? "run_id" : "id")
       .range(from, from + 999);
     if (error) throw new Error(`${table}: ${error.message}`);
     all.push(...data);
@@ -165,6 +166,7 @@ try {
     const result = await admin.auth.admin.deleteUser(user.id);
     if (result.error) throw result.error;
   }
+  const changedTables = [];
   for (const table of tables) {
     const after = await rows(table);
     assert.equal(
@@ -176,23 +178,31 @@ try {
       0,
       `Leftover test rows: ${table}`,
     );
-    assert.equal(
-      digest(after),
-      digest(before[table]),
-      `Existing ${table} changed during test window`,
-    );
+    if (digest(after) !== digest(before[table])) changedTables.push(table);
   }
   for (const user of users) {
     const { data, error } = await admin.auth.admin.getUserById(user.id);
     assert.equal(error?.status, 404, "Account absence not confirmed");
     assert.equal(data.user, null, "Test user remains");
   }
+  manifest.cleanupAudit = {
+    verifiedAt: new Date().toISOString(),
+    testUsersAbsent: true,
+    testRowsAbsent: true,
+    changedTables,
+  };
+  await journal();
+  assert.equal(
+    changedTables.length,
+    0,
+    `Existing data changed during test window: ${changedTables.join(", ")}`,
+  );
   manifest.cleanup =
     "verified: test accounts and all test rows removed; existing rows unchanged";
   await journal();
   console.log(
     "Cleanup verified: 2 test accounts and " +
       projects.length +
-      " test projects removed; all four existing tables unchanged.",
+      " test projects removed; all five existing tables unchanged.",
   );
 }

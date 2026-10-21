@@ -211,7 +211,10 @@ async function main() {
     "Startup failed; inspect .demo/manager.log and .demo/app.log",
   );
 }
-main().catch((error) => {
+(existsSync(".demo/cloud-mode")
+  ? import("../worker/manage.mjs").then(({ main }) => main())
+  : main()
+).catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });

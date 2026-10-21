@@ -1,0 +1,141 @@
+.compact .canvas {
+  padding: 18px 22px;
+}
+.compact .canvas h2 {
+  font-size: 25px;
+  margin: 8px 0;
+}
+.compact .canvas p {
+  margin-bottom: 14px;
+}
+.compact .caption {
+  display: none;
+}
+.compact .task {
+  padding: 9px 12px;
+}
+.scene {
+  min-width: 0;
+  padding: 30px 24px;
+  background: #e8eee6;
+  border-radius: 28px;
+}
+.window {
+  overflow: hidden;
+  border: 1px solid #d5ded2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 45px #233c2414;
+  transform: rotate(-2deg);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 18px;
+  color: #385443;
+  font-size: 12px;
+  border-bottom: 1px solid #e6ebe3;
+}
+.toolbar > span:last-child {
+  margin-left: auto;
+}
+.canvas {
+  padding: 30px 25px 24px;
+  background: #fbfaf6;
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  color: #64735d;
+}
+.canvas h2 {
+  font-size: 32px;
+  line-height: 1.45;
+  letter-spacing: -1px;
+  margin: 14px 0 8px;
+  font-weight: 600;
+}
+.canvas p {
+  font-size: 12px;
+  color: #677160;
+  margin-bottom: 24px;
+}
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e5e8df;
+  padding: 13px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.task small {
+  margin-left: auto;
+  color: #697560;
+  font-size: 10px;
+}
+.checked,
+.unchecked {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  border: 1px solid #bdcbb6;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+}
+.checked {
+  background: #365c45;
+  color: white;
+  border-color: #365c45;
+}
+.task s {
+  color: #7b8375;
+}
+.tryLink {
+  display: inline-block;
+  margin-top: 18px;
+  color: #31583e;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.tryLink:focus-visible {
+  outline: 2px solid #31583e;
+  outline-offset: 5px;
+}
+.bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  font-size: 10px;
+  color: #586953;
+}
+.bottom span {
+  margin-left: auto;
+}
+.caption {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  color: #45623d;
+  font-size: 12px;
+  padding-top: 24px;
+}
+@media (max-width: 900px) {
+  .scene {
+    max-width: 470px;
+    width: 100%;
+    margin: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .window {
+    transform: none;
+  }
+}

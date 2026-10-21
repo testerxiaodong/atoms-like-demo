@@ -2,9 +2,9 @@
 
 所有通过 Google 登录的账号均可创建和生成自己的项目，无需预先配置邮箱或用户 ID。未登录请求仍返回 401，其他人的项目仍由所有权检查与数据库 RLS 隔离。
 
-`.env.demo` 只需设置 `FORMA_DEMO=1` 与当前 HTTPS `DEMO_ORIGIN`（可选 `DEMO_PROXY`）。不再读取 `DEMO_ALLOWED_EMAILS` 或 `DEMO_ALLOWED_USER_IDS`。
+当前部署：Vercel `bom1`（孟买）承载页面、鉴权、数据库访问与编译；Supabase 位于 `ap-south-1`（孟买）。本机 Worker 主动访问云端领取任务，不需要入站端口或 Cloudflare 隧道。Cloudflare 仅管理固定域名 DNS，目标为 Vercel。
 
-所有账号共用本机模型额度，最多同时运行一个 Codex 任务；本机生成超时上限为 600 秒，API 模式为 100 秒。演示结束关闭应用与隧道，并删除 Supabase 中失效的临时回调地址。
+所有账号共用一个 Codex 执行名额，生成上限 600 秒，数据库任务有效期 630 秒。关闭 Worker 后网站仍可浏览和编辑；新生成返回“生成服务暂未在线”。已有任务在 Worker 正常停止时失败并保留原版本；进程崩溃或断网时到期释放。
 
 ## Google OAuth 检查
 
@@ -20,7 +20,7 @@
 
 - Google OAuth 客户端「已获授权的重定向 URI」填 Supabase provider 提供的 `https://你的项目.supabase.co/auth/v1/callback`。
 - Supabase Authentication → URL Configuration → Redirect URLs 填 `https://当前演示域名/auth/callback`。保留仍使用的 localhost 回调。
-- 更换临时隧道域名时，更新 Supabase Redirect URLs 和 `.env.demo` 的 `DEMO_ORIGIN`，重启应用。Google 的 Supabase 回调无需随隧道域名变化。
+- 当前云端固定域名无需隧道回调。只有回退到旧隧道方案且更换域名时，才需更新 Supabase Redirect URLs 与旧配置的 DEMO_ORIGIN。
 
 ## 交付前验收
 
@@ -28,26 +28,36 @@
 2. 未登录调用私有接口返回 401；账号 A 不能读取、修改或预览账号 B 的项目。
 3. 验证停止后可重新发送，生成失败后可恢复，右侧预览可交互。
 4. 验证同时第二个模型任务被拒绝，超时后释放运行名额。
-5. 展示期间保持本机、应用、代理（如使用）和隧道在线。链接持有者登录后都能使用模型额度；结束展示即关闭隧道。
+5. 展示生成能力时保持本机 Worker 与 Codex 连接在线；结束展示停止 Worker，云端网站继续提供项目浏览、编辑和预览。
 
 自动化覆盖登录鉴权、项目隔离、并发拒绝、超时信号后的名额释放及重新运行。真实第三方登录需目标账号完成一次验收。
 
-## 固定域名与重启
+## 固定域名与启停
 
-当前演示入口：https://forma.coder-cengdong.site
+演示入口：https://forma.coder-cengdong.site
 
-使用 Cloudflare 命名隧道 `forma-demo`，转发到本机 `http://localhost:3002`。域名与隧道不会随进程重启变化。凭据保存在本机 `~/.cloudflared/forma-demo.token`，权限 600，不在仓库中。
+Vercel 项目为 `forma-demo`，生产别名为 `https://forma-demo-ochre.vercel.app`。DNS 的 `forma` CNAME 指向 Vercel 提供的地址，当前为 `86160cfcb150455d.vercel-dns-017.com`（DNS only）。Google 回调仍指向 Supabase；Supabase Site URL 与允许回调仍为固定域名，无需因后端迁移修改 OAuth 客户端。
 
-重启后，在项目目录执行一次即可后台启动应用与固定隧道，终端可关闭：
+本机 `.env.worker`（不要提交）：
 
-```sh
-npm run demo:start
-npm run demo:status  # 查看运行状态
-npm run demo:stop    # 一起停止应用和隧道
+```dotenv
+WORKER_APP_ORIGIN=https://forma-demo-ochre.vercel.app
+CODEX_WORKER_SECRET=与云端相同的随机密钥
+CODEX_CLI_PATH=/absolute/path/to/codex
 ```
 
-代码有更新时先执行 `npm run build`。`.env.demo` 的 `DEMO_ORIGIN` 设为 `https://forma.coder-cengdong.site`。Supabase Site URL 使用同一固定地址，Redirect URLs 包含其 `/auth/callback`。Google OAuth 客户端仍回调 Supabase，无需修改。
+云端同名密钥与数据库管理密钥仅用于服务端。Worker 不持有数据库管理密钥，不接受外部请求。源码与上下文通过 HTTPS 传送到本机；不在日志中记录源码、用户提示或密钥。
 
-macOS 也可双击仓库根目录的 `启动演示.command` 或 `停止演示.command`。日志位于被 Git 忽略的 `.demo/`，启动失败时查看 `manager.log`、`app.log` 和 `tunnel.log`。重复启动不会创建第二份进程，任一子进程退出会关闭另一项服务。
+```sh
+npm run worker:start
+npm run worker:status
+npm run worker:stop
+```
 
-结束演示时执行 `npm run demo:stop`。电脑关机或服务停止时网站暂不可用；重新运行以上命令后原链接恢复，无需重新发链接。当前没有设置开机自动运行。
+当前演示机器已有 `.demo/cloud-mode`，`npm run demo:start`、`demo:stop`、`demo:status` 和根目录双击启停脚本转为控制 Worker。日志为 `.demo/worker.log` 和 `.demo/worker-manager.log`。Worker 代码更新后停止再启动；云端 `main` 自动部署不会替你更新或重启本机进程。
+
+## 发布与回退
+
+推送 `main` 后 Vercel 自动构建部署；GitHub Actions 是独立测试，不会阻止 Vercel 提前发布。迁移 SQL 须先执行。上线前运行测试文档中的云端任务和性能回归，Google 同意页由目标账号手动验收。
+
+旧命名隧道和配置保留作回退。需要回退时先停止 Worker、移除本机 `.demo/cloud-mode` 标记，使用迁移前稳定提交构建并启动旧演示；将 DNS 恢复为原 Tunnel CNAME（`075e1d40-934e-4b2a-956a-8207c5c332a8.cfargotunnel.com`，Proxied）。新 SQL 迁移为附加表/函数，不修改旧模式的事务流程。回退前确认没有进行中的生成，避免两个后端同时使用本机 Codex。

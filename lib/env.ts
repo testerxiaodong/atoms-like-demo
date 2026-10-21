@@ -9,6 +9,7 @@ export function hasSupabase() {
 export function hasModel() {
   return (
     isLocalCodex() ||
+    isRemoteCodex() ||
     Boolean(
       process.env.AI_API_KEY && process.env.AI_BASE_URL && process.env.AI_MODEL,
     )
@@ -21,5 +22,12 @@ export function isLocalCodex() {
     (process.env.NODE_ENV !== "production" ||
       (demoEnabled() && !!demoOrigin())) &&
     !process.env.VERCEL
+  );
+}
+
+export function isRemoteCodex() {
+  return (
+    process.env.AGENT_BACKEND === "codex-worker" &&
+    Boolean(process.env.CODEX_WORKER_SECRET)
   );
 }

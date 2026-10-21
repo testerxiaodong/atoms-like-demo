@@ -6,7 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 export async function startBackend() {
   const db = new PGlite();
   const uid = '00000000-0000-4000-8000-000000000001';
-  await db.exec(`create schema auth;create role anon;create role authenticated;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;insert into auth.users values('${uid}');`);
+  await db.exec(`create schema auth;create role service_role;create role anon;create role authenticated;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;insert into auth.users values('${uid}');`);
   for (const file of (await readdir('supabase/migrations')).filter(f => f.endsWith('.sql')).sort())
     await db.exec(await readFile(`supabase/migrations/${file}`, 'utf8'));
   await db.exec(`set role authenticated;set request.jwt.claim.sub='${uid}'`);

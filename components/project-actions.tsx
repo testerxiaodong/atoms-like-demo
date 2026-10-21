@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { Button } from "./ui/button";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
 import { Ellipsis, Trash2, Loader2 } from "lucide-react";
@@ -118,7 +119,8 @@ export function ProjectActions({
               >
                 取消
               </Dialog.Close>
-              <button
+              <Button
+                variant="destructive"
                 className="delete-confirm"
                 disabled={busy}
                 onClick={() => void remove()}
@@ -131,7 +133,7 @@ export function ProjectActions({
                 ) : (
                   "确认删除"
                 )}
-              </button>
+              </Button>
             </div>
           </Dialog.Popup>
         </Dialog.Portal>

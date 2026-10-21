@@ -1,5 +1,10 @@
 "use client";
 import Link from "next/link";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
+import { Card } from "./ui/card";
+import { Alert } from "./ui/alert";
+import { BuildShowcase } from "./build-showcase";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Layers2, Sparkles, Loader2, Code2, Eye, History } from "lucide-react";
@@ -131,13 +136,14 @@ export function Home({
           {signedIn ? (
             <>
               <Link href="/projects">我的项目</Link>
-              <button
+              <Button
+                variant="ghost"
                 className="nav-quiet"
                 disabled={!hydrated || loggingOut}
                 onClick={logout}
               >
                 {loggingOut ? "正在退出…" : "退出登录"}
-              </button>
+              </Button>
             </>
           ) : (
             <>
@@ -164,66 +170,71 @@ export function Home({
       </header>
       <main>
         <section className="landing-hero">
-          <div className="hero-kicker">
-            <span /> A LITTLE IDEA. A REAL APP.
-          </div>
-          <h1>
-            让一个想法，
-            <br />
-            <em>成为你的作品。</em>
-          </h1>
-          <p className="hero-description">
-            从一句描述开始，和 AI 一起构建、调整、创造。
-          </p>
-          <form
-            className="prompt-box"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void create();
-            }}
-          >
-            <textarea
-              aria-label="描述你的应用"
-              disabled={!hydrated}
-              placeholder="比如，一个记录旅行灵感的小网站…"
-              value={prompt}
-              maxLength={4000}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <div className="prompt-bottom">
-              <span>
-                <Sparkles size={15} /> 你的 AI 构建伙伴
-              </span>
-              <button
-                className="primary-action"
-                disabled={!hydrated || busy || !configured || !prompt.trim()}
-              >
-                {busy ? <Loader2 size={16} className="spin" /> : null}
-                {busy ? "正在创建…" : "开始构建"}
-              </button>
+          <div className="hero-copy">
+            <div className="hero-kicker">
+              <span /> A LITTLE IDEA. A REAL APP.
             </div>
-          </form>
-          {error && (
-            <p className="error-banner" role="alert">
-              {error}
+            <h1>
+              让一个想法，
+              <br />
+              <em>成为你的作品。</em>
+            </h1>
+            <p className="hero-description">
+              从一句描述开始，和 AI 一起构建、调整、创造。
             </p>
-          )}
-          {!configured && (
-            <p className="config-note">
-              服务尚未配置，可以先浏览下方交互示例。
-            </p>
-          )}
-          <div className="suggestions">
-            {[
-              "一个简洁的个人作品集",
-              "带分类的灵感收藏夹",
-              "每日习惯打卡应用",
-            ].map((s) => (
-              <button key={s} disabled={!hydrated} onClick={() => setPrompt(s)}>
-                {s}
-              </button>
-            ))}
+            <form
+              className="prompt-box"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void create();
+              }}
+            >
+              <Textarea
+                aria-label="描述你的应用"
+                disabled={!hydrated}
+                placeholder="比如，一个记录旅行灵感的小网站…"
+                value={prompt}
+                maxLength={4000}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+              <div className="prompt-bottom">
+                <span>
+                  <Sparkles size={15} /> 你的 AI 构建伙伴
+                </span>
+                <Button
+                  type="submit"
+                  className="primary-action"
+                  disabled={!hydrated || busy || !configured || !prompt.trim()}
+                >
+                  {busy ? <Loader2 size={16} className="spin" /> : null}
+                  {busy ? "正在创建…" : "开始构建"}
+                </Button>
+              </div>
+            </form>
+            {error && <Alert>{error}</Alert>}
+            {!configured && (
+              <p className="config-note">
+                服务尚未配置，可以先浏览下方交互示例。
+              </p>
+            )}
+            <div className="suggestions">
+              {[
+                "一个简洁的个人作品集",
+                "带分类的灵感收藏夹",
+                "每日习惯打卡应用",
+              ].map((s) => (
+                <Button
+                  variant="outline"
+                  key={s}
+                  disabled={!hydrated}
+                  onClick={() => setPrompt(s)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
           </div>
+          <BuildShowcase />
         </section>
         {projects && (
           <section className="landing-section">
@@ -234,7 +245,7 @@ export function Home({
             {visibleProjects!.length ? (
               <div className="project-grid">
                 {visibleProjects!.map((p) => (
-                  <article key={p.id} className="project-card">
+                  <Card key={p.id} className="project-card">
                     <Link href={`/projects/${p.id}`}>
                       <div className="project-cover">
                         <Layers2 size={30} />
@@ -255,7 +266,7 @@ export function Home({
                         router.refresh();
                       }}
                     />
-                  </article>
+                  </Card>
                 ))}
               </div>
             ) : (
@@ -275,7 +286,7 @@ export function Home({
           </div>
           <div className="example-grid">
             {examples.map((item, i) => (
-              <article className={`example-card ${item.color}`} key={item.id}>
+              <Card className={`example-card ${item.color}`} key={item.id}>
                 <Link
                   className="example-art"
                   href={`/demo?example=${item.id}`}
@@ -330,7 +341,7 @@ export function Home({
                     <Link href={`/?example=${item.id}`}>基于此示例创建</Link>
                   </div>
                 </div>
-              </article>
+              </Card>
             ))}
           </div>
         </section>

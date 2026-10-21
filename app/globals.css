@@ -137,7 +137,9 @@
 }
 body {
   margin: 0;
-  font-family: Arial, "PingFang SC", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
 }
 button,
 a,
@@ -334,7 +336,7 @@ textarea {
   background: transparent;
 }
 .prompt-box textarea::placeholder {
-  color: #a9b09f;
+  color: #697762;
 }
 .prompt-bottom {
   display: flex;
@@ -345,8 +347,8 @@ textarea {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
-  color: #91a17d;
+  font-size: 12px;
+  color: #617456;
 }
 .send-button {
   background: #527047;
@@ -372,8 +374,8 @@ textarea {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 10px;
-  color: #869179;
+  font-size: 12px;
+  color: #5e7053;
   border: 1px solid #e6e9df;
   border-radius: 20px;
   padding: 7px 12px;
@@ -585,11 +587,11 @@ textarea {
   gap: 9px;
 }
 .header-actions button {
-  font-size: 11px;
+  font-size: 13px;
 }
 .save-status {
-  font-size: 10px;
-  color: #9da792;
+  font-size: 12px;
+  color: #627260;
   margin-right: 8px;
 }
 .workspace-body {
@@ -598,7 +600,7 @@ textarea {
   min-height: 0;
 }
 .chat-panel {
-  width: 350px;
+  width: min(380px, 35vw);
   flex: none;
   border-right: 1px solid var(--border);
   display: flex;
@@ -618,7 +620,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 550;
 }
 .chat-messages {
@@ -638,15 +640,15 @@ textarea {
   margin-bottom: 18px;
 }
 .assistant-intro h2 {
-  font-size: 16px;
+  font-size: 20px;
   letter-spacing: -0.4px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 10px;
 }
 .assistant-intro p {
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.9;
-  color: #929b87;
+  color: #65725f;
 }
 .demo-note {
   margin-top: 24px;
@@ -656,29 +658,31 @@ textarea {
   padding: 16px;
 }
 .demo-note > span {
+  display: block;
+  margin-bottom: 8px;
   font-size: 11px;
   color: #70875d;
 }
 .demo-note p {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.9;
-  color: #7c8b6e;
+  color: #62715b;
   margin: 12px 0;
 }
 .demo-note small {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
-  color: #a0a991;
+  color: #62715b;
   display: block;
 }
 .message {
   margin-top: 24px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .message small {
-  font-size: 10px;
-  color: #8b9a7a;
+  font-size: 12px;
+  color: #5f7158;
 }
 .message p {
   white-space: pre-wrap;
@@ -686,27 +690,27 @@ textarea {
   margin-top: 7px;
 }
 .message.user {
-  background: #f0f3eb;
-  padding: 12px 15px;
-  border-radius: 11px;
+  background: #edf3e9;
+  padding: 14px 16px;
+  border-radius: 14px 14px 4px 14px;
 }
 .message.system {
-  font-size: 10px;
-  color: #97a08c;
+  font-size: 12px;
+  color: #65725f;
   border-top: 1px solid #edf0e7;
   padding-top: 12px;
 }
 .message details {
   margin-top: 10px;
-  font-size: 10px;
-  color: #8b997d;
+  font-size: 12px;
+  color: #65725f;
 }
 .message summary {
   cursor: pointer;
 }
 .step {
-  font-size: 10px;
-  color: #869778;
+  font-size: 12px;
+  color: #62715b;
   margin: 8px 0;
   overflow-wrap: anywhere;
 }
@@ -728,21 +732,22 @@ textarea {
 }
 .chat-composer {
   border: 1px solid #dce3d2;
-  border-radius: 11px;
+  border-radius: 16px;
   padding: 13px;
-  background: #fdfefb;
+  background: #fff;
+  box-shadow: 0 3px 14px #293c2010;
 }
 .chat-composer textarea {
   background: transparent;
   border: 0;
   outline: 0;
   width: 100%;
-  height: 67px;
-  font-size: 11px;
+  height: 80px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .chat-composer textarea::placeholder {
-  color: #a4ad99;
+  color: #6d7966;
 }
 .chat-composer > div {
   display: flex;
@@ -750,16 +755,16 @@ textarea {
   align-items: center;
 }
 .chat-composer > div > span {
-  font-size: 9px;
-  color: #95a384;
+  font-size: 11px;
+  color: #66745c;
   display: flex;
   gap: 5px;
   align-items: center;
 }
 .chat-composer .send-button {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 .chat-composer .stop-button {
   border-radius: 50%;
@@ -823,8 +828,8 @@ textarea {
   white-space: nowrap;
 }
 .composer-caption {
-  font-size: 8px;
-  color: #b3bba9;
+  font-size: 11px;
+  color: #67745f;
   text-align: center;
   margin: 10px 0 12px;
 }
@@ -834,6 +839,7 @@ textarea {
   display: flex;
   flex-direction: column;
   padding: 0 15px;
+  background: #f1f3ef;
 }
 .preview-toolbar {
   height: 53px;
@@ -854,8 +860,8 @@ textarea {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 10px;
-  color: #98a38c;
+  font-size: 13px;
+  color: #5b6e50;
   padding: 5px 10px;
   border-radius: 5px;
 }
@@ -865,8 +871,8 @@ textarea {
   box-shadow: 0 1px 3px #233a2210;
 }
 .preview-url {
-  font-size: 10px;
-  color: #a1ab95;
+  font-size: 12px;
+  color: #63725a;
 }
 .device-tabs {
   display: flex;
@@ -874,7 +880,7 @@ textarea {
 }
 .device-tabs button {
   padding: 6px;
-  color: #a3ad97;
+  color: #64785a;
   border-radius: 5px;
 }
 .device-tabs .active {
@@ -960,8 +966,8 @@ textarea {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 8px;
-  color: #9eab91;
+  font-size: 11px;
+  color: #62715b;
   flex: none;
 }
 .preview-footer > span:last-child {
@@ -1000,13 +1006,13 @@ textarea {
   justify-content: space-between;
 }
 .version-card small {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
-  color: #97a487;
+  color: #62715b;
 }
 .version-card p {
-  font-size: 10px;
-  color: #7f8b71;
+  font-size: 13px;
+  color: #62715b;
   line-height: 1.8;
   margin: 10px 0;
   display: -webkit-box;
@@ -1015,8 +1021,8 @@ textarea {
   overflow: hidden;
 }
 .version-card time {
-  font-size: 8px;
-  color: #acb59e;
+  font-size: 11px;
+  color: #62715b;
 }
 .restore-actions {
   display: flex;
@@ -1031,8 +1037,8 @@ textarea {
 }
 .error-banner {
   background: #fff0e8;
-  color: #a26341;
-  font-size: 11px;
+  color: #93401f;
+  font-size: 13px;
   padding: 10px;
   border-radius: 8px;
   line-height: 1.7;
@@ -1251,6 +1257,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid #e1e6de;
 }
 .landing-nav nav,
 .landing-footer nav {
@@ -1276,24 +1283,32 @@ textarea {
   border-radius: 24px;
 }
 .landing-hero {
-  max-width: 800px;
-  margin: 70px auto 80px;
-  text-align: center;
+  max-width: 1130px;
+  margin: 64px auto 88px;
+  text-align: left;
   padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  align-items: center;
+  gap: 56px;
 }
 .landing-hero h1 {
-  font-size: clamp(40px, 5.8vw, 68px);
-  font-weight: 500;
-  letter-spacing: -3px;
-  line-height: 1.2;
+  font-size: clamp(36px, 4.2vw, 54px);
+  font-weight: 650;
+  letter-spacing: -2px;
+  line-height: 1.3;
   margin: 25px 0;
 }
 .landing-hero h1 em {
   font-style: normal;
-  color: #718871;
+  color: #477350;
 }
 .landing-hero .hero-description {
+  text-align: left;
   margin: 24px 0 32px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #5e6b60;
 }
 .landing-hero .prompt-box {
   text-align: left;
@@ -1313,14 +1328,16 @@ textarea {
   padding: 12px 22px;
   font-size: 14px;
   cursor: pointer;
+  height: 44px;
 }
 .primary-action:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .landing .suggestions {
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
+  gap: 8px;
 }
 .landing-section {
   max-width: 1130px;
@@ -1329,9 +1346,9 @@ textarea {
   scroll-margin-top: 24px;
 }
 .section-eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 2px;
-  color: #7a8679;
+  color: #5e705d;
 }
 .landing-section .section-heading {
   align-items: end;
@@ -1485,7 +1502,7 @@ textarea {
 .example-meta > div {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
   color: #46664b;
 }
 .example-meta a:hover {
@@ -1537,7 +1554,7 @@ textarea {
 }
 .auth-shell {
   min-height: 100vh;
-  background: #f4f3ec;
+  background: #faf9f6;
   padding: 32px;
   display: flex;
   align-items: center;
@@ -1564,9 +1581,9 @@ textarea {
   margin: 24px 0 16px;
 }
 .auth-card p {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
-  color: #73806f;
+  color: #5c6b59;
   margin: 18px 0;
 }
 .auth-card .primary-action {
@@ -1859,4 +1876,126 @@ textarea {
   cursor: pointer;
   font-size: 12px;
   color: #808a75;
+}
+
+/* Shared UI primitives: one focus treatment across product surfaces. */
+.ui-textarea {
+  resize: vertical;
+  border-radius: 8px;
+}
+.ui-textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.prompt-box:focus-within,
+.chat-composer:focus-within {
+  border-color: #668b64;
+  box-shadow: 0 0 0 3px #668b641c;
+}
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #dce5d7;
+  border-radius: 6px;
+  padding: 3px 7px;
+  font-size: 11px;
+  color: #496341;
+  background: #f2f6ee;
+}
+.ui-tooltip {
+  background: #26382b;
+  color: white;
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 4px 14px #17231420;
+}
+.hero-copy {
+  min-width: 0;
+}
+.hero-copy .hero-kicker {
+  justify-content: flex-start;
+  font-size: 10px;
+  color: #607451;
+}
+.auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+  align-items: center;
+  max-width: 1050px;
+  width: 100%;
+  margin: auto;
+  padding: 36px 0;
+}
+.auth-story h2 {
+  font-size: 38px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  margin: 16px 0;
+}
+.auth-story > p {
+  font-size: 14px;
+  color: #5f715a;
+  margin-bottom: 28px;
+}
+.workspace button:focus-visible,
+.workspace a:focus-visible {
+  outline: 2px solid #507b50;
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    max-width: 700px;
+  }
+  .auth-layout {
+    gap: 30px;
+  }
+  .auth-story h2 {
+    font-size: 30px;
+  }
+}
+@media (max-width: 700px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    padding: 28px 0;
+  }
+  .auth-story {
+    display: none;
+  }
+  .landing-hero h1 {
+    letter-spacing: -1.5px;
+  }
+  .landing-hero .suggestions button {
+    font-size: 12px;
+    white-space: normal;
+    height: auto;
+    min-height: 34px;
+  }
+  .header-actions button {
+    font-size: 12px;
+    min-height: 34px;
+  }
+  .chat-panel {
+    width: 100%;
+    height: 490px;
+  }
+  .chat-composer textarea {
+    height: 64px;
+  }
+  .chat-messages {
+    padding: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

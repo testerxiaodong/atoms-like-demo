@@ -59,6 +59,11 @@ export function databaseError(
     message: error.message,
   });
   const code = error.message;
+  if (code.includes("WORKER_OFFLINE"))
+    throw new ApiError(
+      "生成服务暂未在线，请稍后重试；项目浏览和编辑仍可使用。",
+      503,
+    );
   if (code.includes("REVISION_CONFLICT"))
     throw new ApiError(
       "项目已有新版本，请刷新后继续，当前修改未覆盖云端。",
