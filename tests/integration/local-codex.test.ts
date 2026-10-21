@@ -63,9 +63,15 @@ it.runIf(process.env.FORMA_CODEX_SMOKE === "1")(
 );
 
 it("separates public progress from result payloads without leaking code", () => {
-  expect(classifyCodexMessage("我会先实现键盘操作，再补充计分面板。").kind).toBe("progress");
-  expect(classifyCodexMessage('{"summary":"完成","files":[]}').kind).toBe("result");
-  expect(classifyCodexMessage("```tsx\nexport default function App(){}\n```").kind).toBe("ignore");
+  expect(
+    classifyCodexMessage("我会先实现键盘操作，再补充计分面板。").kind,
+  ).toBe("progress");
+  expect(classifyCodexMessage('{"summary":"完成","files":[]}').kind).toBe(
+    "result",
+  );
+  expect(
+    classifyCodexMessage("```tsx\nexport default function App(){}\n```").kind,
+  ).toBe("ignore");
   expect(classifyCodexMessage(undefined).kind).toBe("ignore");
 });
 it.runIf(process.env.FORMA_CODEX_PROGRESS_SMOKE === "1")(
@@ -74,14 +80,21 @@ it.runIf(process.env.FORMA_CODEX_PROGRESS_SMOKE === "1")(
     const steps: string[] = [];
     const result = await runLocalCodex({
       files: { "/App.tsx": "export default function App(){return null}" },
-      prompt: "做一个带开始暂停、重置和圈次列表的秒表。按组件、hook拆分4个左右文件。实现前和实现中请发送简短中文进展消息。",
+      prompt:
+        "做一个带开始暂停、重置和圈次列表的秒表。按组件、hook拆分4个左右文件。实现前和实现中请发送简短中文进展消息。",
       signal: AbortSignal.timeout(280000),
-      onStep: (step) => { steps.push(step); console.log("Progress:", step); },
+      onStep: (step) => {
+        steps.push(step);
+        console.log("Progress:", step);
+      },
     });
     expect(Object.keys(result.files).length).toBeGreaterThanOrEqual(4);
-    const firstFile = steps.findIndex(step => /^(新增|更新)源码/.test(step));
+    expect(result.streamedFileCount).toBeGreaterThanOrEqual(4);
+    const firstFile = steps.findIndex((step) => /^(新增|更新)源码/.test(step));
     expect(firstFile).toBeGreaterThan(1);
-    expect(steps.slice(1, firstFile).some(step => !step.includes("自动重连"))).toBe(true);
+    expect(
+      steps.slice(1, firstFile).some((step) => !step.includes("自动重连")),
+    ).toBe(true);
     const { buildPreview } = await import("@/lib/projects/preview");
     expect(await buildPreview(result.files)).toContain('id="root"');
   },

@@ -32,5 +32,6 @@ it("agent can inspect, patch, validate and recover without mutating the saved sn
   );
   expect(getFiles()).toEqual(last);
   expect(emptyFiles["/App.tsx"]).toContain("从一个想法开始");
-  expect(steps.length).toBe(4);
+  expect(steps).toContain("更新源码：/App.tsx");
+  expect(steps).toContain("源码语法与引用检查通过");
 });

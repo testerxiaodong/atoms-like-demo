@@ -40,3 +40,16 @@ export async function PATCH(request: Request, context: Context) {
     return errorResponse(error);
   }
 }
+
+export async function DELETE(_request: Request, context: Context) {
+  try {
+    const { db, project } = await ownedProject((await context.params).id);
+    const { error } = await db.rpc("delete_project", {
+      p_project_id: project.id,
+    });
+    databaseError(error);
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}

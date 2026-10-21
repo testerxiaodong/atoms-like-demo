@@ -16,6 +16,7 @@ process.stdin.on('end', () => {
   const emit = event => process.stdout.write(JSON.stringify(event) + '\\n');
   emit({type:'error',message:'Reconnecting... 1/5 (connection interrupted)'});
   emit({type:'item.completed',item:{type:'reasoning',text:'PRIVATE_REASONING'}});
+  emit({type:'item.completed',item:{type:'agent_message',text:'新增源码：/phantom.ts'}});
   emit({type:'item.completed',item:{type:'agent_message',text:'先实现计时，再补充操作面板。'}});
   setTimeout(() => {
     emit({type:'item.completed',item:{type:'agent_message',text:JSON.stringify({summary:'完成',files:[{path:'/App.tsx',content:${JSON.stringify(file)}}]})}});
@@ -43,6 +44,8 @@ process.stdin.on('end', () => {
     expect(steps).toContain("模型连接暂时中断，正在自动重连");
     expect(steps).toContain("先实现计时，再补充操作面板。");
     expect(steps.join(" ")).not.toContain("PRIVATE_REASONING");
+    expect(steps).not.toContain("新增源码：/phantom.ts");
+    expect(steps).toContain("进展：新增源码：/phantom.ts");
     expect(steps.indexOf("先实现计时，再补充操作面板。")).toBeLessThan(
       steps.indexOf("更新源码：/App.tsx"),
     );

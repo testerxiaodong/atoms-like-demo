@@ -58,7 +58,7 @@ AI_MODEL=YOUR_MODEL_ID
 
 ```text
 app/                         页面与服务端接口
-  api/projects/              创建、生成、保存、版本和恢复
+  api/projects/              创建、删除、生成、保存、版本和恢复
   auth/callback/             OAuth 回调
   projects/[id]/             已登录工作台
   demo/                      无需账号的交互示例
@@ -86,6 +86,7 @@ scripts/testing/             测试服务启动、云端编排、恢复清理
 - Supabase 提供 Google OAuth 和托管 PostgreSQL。
 - Sandpack/CodeMirror 提供编辑与独立 iframe 预览，固定 React 18 + TypeScript + CSS + lucide-react。平台本身使用 React 19。
 - 文件列表只展示用户项目文件，运行入口与依赖清单由平台控制。生成代码不在 Next.js 服务端执行。
+- 项目列表支持确认后删除，生成中需先停止；删除会永久清理项目源码、消息和版本。
 - 延伸能力为版本历史：生成和手动保存均生成快照；恢复创建一个新版本，原历史保留；下一轮 Agent 从恢复后的文件继续。
 - 通过 revision 与数据库行锁拒绝过期保存；生成失败不覆盖原代码。刷新时查询运行状态，超时释放锁。
 

@@ -1649,3 +1649,214 @@ textarea {
     height: 250px;
   }
 }
+
+.project-card > a {
+  display: block;
+}
+.project-card {
+  position: relative;
+}
+.project-menu-trigger {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #596451;
+  background: #ffffffb8;
+  border: 1px solid #ffffffaa;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.project-menu-trigger:hover,
+.project-menu-trigger[data-popup-open] {
+  background: white;
+}
+.project-menu-trigger:focus-visible {
+  outline: 2px solid #687957;
+  outline-offset: 3px;
+}
+.project-menu-positioner {
+  z-index: 40;
+}
+.project-menu-popup {
+  min-width: 150px;
+  padding: 5px;
+  background: #fffefa;
+  border: 1px solid #e7e7de;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px #29351b16;
+}
+.project-menu-delete {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #98544a;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+.project-menu-delete[data-highlighted] {
+  background: #f8eeea;
+}
+.delete-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #18221555;
+  backdrop-filter: blur(3px);
+}
+.delete-dialog {
+  position: fixed;
+  z-index: 61;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, calc(100vw - 40px));
+  padding: 28px;
+  border: 1px solid #e6e7de;
+  border-radius: 22px;
+  background: #fffefa;
+  box-shadow: 0 24px 80px #17231026;
+  outline: none;
+}
+.delete-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #f6eae4;
+  color: #a65b4b;
+  margin-bottom: 20px;
+}
+.delete-dialog-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #293526;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+.delete-dialog-description {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #7a7e72;
+  margin: 0;
+}
+.delete-project-name {
+  margin: 20px 0 24px;
+  padding: 13px 15px;
+  border: 1px solid #e8e9e1;
+  border-radius: 10px;
+  background: #f7f8f2;
+  color: #505b46;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  max-height: 120px;
+  overflow: auto;
+}
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.delete-dialog-actions button {
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+}
+.delete-cancel {
+  border: 1px solid #dde1d3;
+  color: #59634f;
+  background: #fffefa;
+}
+.delete-confirm {
+  background: #9c5146;
+  color: white;
+  border: 1px solid #9c5146;
+}
+.delete-confirm:hover {
+  background: #88463c;
+}
+.delete-dialog-actions button:focus-visible {
+  outline: 2px solid #7d8d69;
+  outline-offset: 3px;
+}
+.delete-dialog-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.delete-dialog-error {
+  color: #a04d42;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+.agent-file-list {
+  margin: 12px 0;
+  padding: 5px 12px;
+  border: 1px solid #e1e5da;
+  border-radius: 12px;
+  background: #ffffffab;
+}
+.agent-file-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: #65715b;
+  font-size: 12px;
+}
+.agent-file-heading small {
+  font-size: 11px;
+  color: #949c8c;
+}
+.agent-file-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  border-top: 1px solid #eef0e8;
+  color: #728367;
+}
+.agent-file-row code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: #45523d;
+}
+.file-operation {
+  flex-shrink: 0;
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 10px;
+  color: #657a51;
+  background: #edf2e6;
+}
+.file-operation.removed {
+  color: #a45b4a;
+  background: #f6ece7;
+}
+.agent-file-list .agent-file-note {
+  font-size: 11px;
+  color: #909785;
+  margin: 8px 0;
+}
+.agent-progress-details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #808a75;
+}

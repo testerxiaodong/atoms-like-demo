@@ -42,6 +42,7 @@ test("cloud direct PostgREST RLS and RPC ownership reject another user and direc
   }
   for (const [name, args] of [
     ["rename_project", { p_project_id: p.id, p_name: "forbidden" }],
+    ["delete_project", { p_project_id: p.id }],
     [
       "start_run",
       {

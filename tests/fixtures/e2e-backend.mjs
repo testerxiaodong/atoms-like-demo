@@ -19,7 +19,7 @@ export async function startBackend() {
   const authCodes = new Map();
   const commitFaults = new Map();
   const rpcArgs = {
-    create_project: ['p_name','p_files'], rename_project: ['p_project_id','p_name'],
+    delete_project: ['p_project_id'], create_project: ['p_name','p_files'], rename_project: ['p_project_id','p_name'],
     start_run: ['p_project_id','p_request_key','p_revision','p_prompt'],
     fail_run: ['p_project_id','p_run_id','p_error'],
     commit_version: ['p_project_id','p_revision','p_files','p_summary','p_source','p_run_id','p_restored_from','p_steps'],

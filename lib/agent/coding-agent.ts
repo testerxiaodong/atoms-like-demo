@@ -35,7 +35,7 @@ export function createCodingTools(
       inputSchema: z.object({ paths: z.array(z.string()).max(20) }),
       execute: async ({ paths }) => {
         const names = paths.length ? paths : Object.keys(files);
-        onStep(`读取源码：${names.join("、")}`);
+        names.forEach((name) => onStep(`读取源码：${name}`));
         return Object.fromEntries(
           names.map((name) => [
             name,
@@ -50,10 +50,17 @@ export function createCodingTools(
       inputSchema: changeSchema,
       execute: async (changes) => {
         try {
+          const previous = files;
           files = applyChanges(files, changes);
-          onStep(
-            `已更新 ${changes.updates.map((f) => f.path).join("、") || "文件"}${changes.deletes.length ? `，删除 ${changes.deletes.length} 个文件` : ""}`,
-          );
+          for (const file of changes.updates) {
+            if (previous[file.path] !== file.content)
+              onStep(
+                `${Object.hasOwn(previous, file.path) ? "更新" : "新增"}源码：${file.path}`,
+              );
+          }
+          for (const name of changes.deletes) {
+            if (Object.hasOwn(previous, name)) onStep(`删除源码：${name}`);
+          }
           return { success: true, files: Object.keys(files) };
         } catch (error) {
           onStep("文件变更未通过检查，正在调整");

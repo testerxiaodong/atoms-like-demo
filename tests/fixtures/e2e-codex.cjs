@@ -21,8 +21,11 @@ process.stdin.on('end', () => {
     {path:'/components/Counter.tsx',content:'import {useState} from "react"; export function Counter(){const [count,setCount]=useState(0);return <button onClick={()=>setCount(count+1)}>计数：{count}</button>}'},
     {path:'/styles.css',content:'body{margin:0;background:#eef3e6;color:#253924;font:18px system-ui} main{padding:48px}button{padding:16px;border:1px solid;border-radius:12px;background:white;font:inherit}'}
   ];
+  files.forEach((file, index) => setTimeout(() => {
+    emit({type:'item.completed',item:{type:'agent_message',text:JSON.stringify({type:'file',...file})}});
+  }, 100 + index * 250));
   setTimeout(() => {
-    emit({type:'item.completed',item:{type:'agent_message',text:JSON.stringify({summary:'端到端测试作品已生成。点击右侧计数按钮验证预览交互。',files})}});
+    emit({type:'item.completed',item:{type:'agent_message',text:JSON.stringify({summary:'端到端测试作品已生成。点击右侧计数按钮验证预览交互。',filePaths:files.map(file=>file.path)})}});
     emit({type:'turn.completed'});
-  }, 1500);
+  }, current.includes("E2E_FILE_PROGRESS") ? 5000 : 1500);
 });

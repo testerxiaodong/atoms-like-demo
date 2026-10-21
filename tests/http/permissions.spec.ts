@@ -1,13 +1,6 @@
 import { expect, request as http } from "@playwright/test";
 import { test } from "../support/auth";
-import {
-  uuid,
-  root,
-  create,
-  detail,
-  save,
-  startSlow,
-} from "../support/http";
+import { uuid, root, create, detail, save, startSlow } from "../support/http";
 import { createServerClient } from "@supabase/ssr";
 test("HTTP anonymous callers cannot access any private read or write endpoint", async ({
   context,
@@ -20,6 +13,7 @@ test("HTTP anonymous callers cannot access any private read or write endpoint", 
       ["POST", root],
       ["GET", `${root}/${p.id}`],
       ["PATCH", `${root}/${p.id}`],
+      ["DELETE", `${root}/${p.id}`],
       ["POST", `${root}/${p.id}/save`],
       ["POST", `${root}/${p.id}/chat`],
       ["POST", `${root}/${p.id}/restore`],
@@ -78,6 +72,7 @@ test("HTTP second account cannot read, change, generate, restore, stop or previe
     for (const [method, path] of [
       ["GET", ""],
       ["PATCH", ""],
+      ["DELETE", ""],
       ["POST", "/save"],
       ["POST", "/chat"],
       ["POST", "/restore"],

@@ -18,6 +18,7 @@ import {
   Loader2,
   Square,
 } from "lucide-react";
+import { AgentActivity } from "./agent-activity";
 import { Button } from "@/components/ui/button";
 import type { FileMap, Message, Project, Version } from "@/lib/types";
 import { readAgentStream } from "@/lib/stream";
@@ -424,16 +425,7 @@ export function Workspace({
                       : "项目动态"}
                 </small>
                 <p>{m.content}</p>
-                {m.steps?.length > 0 && (
-                  <details>
-                    <summary>已记录 {m.steps.length} 条进展 · 查看过程</summary>
-                    {m.steps.map((s, i) => (
-                      <div key={i} className="step">
-                        · {s}
-                      </div>
-                    ))}
-                  </details>
-                )}
+                {m.steps?.length > 0 && <AgentActivity steps={m.steps} />}
               </div>
             ))}
             {locked && (
@@ -442,11 +434,7 @@ export function Workspace({
                   <Loader2 size={13} className="spin" />
                   正在回复 · {steps.length} 条进展
                 </small>
-                {steps.map((s, i) => (
-                  <div key={i} className="step">
-                    · {s}
-                  </div>
-                ))}
+                <AgentActivity steps={steps} pending />
                 {stream && <p>{stream}</p>}
                 {!busy && <p>生成任务仍在运行，完成后自动刷新。</p>}
               </div>

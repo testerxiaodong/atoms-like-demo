@@ -3,6 +3,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Layers2, Sparkles, Loader2, Code2, Eye, History } from "lucide-react";
+import dynamic from "next/dynamic";
+const ProjectActions = dynamic(() =>
+  import("@/components/project-actions").then(
+    (module) => module.ProjectActions,
+  ),
+);
 import { useHydrated } from "@/lib/use-hydrated";
 import { examples, getExample } from "@/lib/templates/examples";
 export function Home({
@@ -26,6 +32,8 @@ export function Home({
     [loggingOut, setLoggingOut] = useState(false);
   const creating = useRef(false),
     resumed = useRef(false);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const visibleProjects = projects?.filter((p) => !removed.includes(p.id));
   const example = getExample(exampleId);
   async function create(text = prompt, continuing = false) {
     if (!text.trim() || creating.current) return;
@@ -221,28 +229,33 @@ export function Home({
           <section className="landing-section">
             <div className="section-heading">
               <h2>我的项目</h2>
-              <span>{projects.length} 个项目</span>
+              <span>{visibleProjects!.length} 个项目</span>
             </div>
-            {projects.length ? (
+            {visibleProjects!.length ? (
               <div className="project-grid">
-                {projects.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/projects/${p.id}`}
-                    className="project-card"
-                  >
-                    <div className="project-cover">
-                      <Layers2 size={30} />
-                      <span>{p.name.slice(0, 20)}</span>
-                    </div>
-                    <div className="card-meta">
-                      <strong>{p.name}</strong>
-                      <small>
-                        {new Date(p.updated_at).toLocaleDateString("zh-CN")}{" "}
-                        更新
-                      </small>
-                    </div>
-                  </Link>
+                {visibleProjects!.map((p) => (
+                  <article key={p.id} className="project-card">
+                    <Link href={`/projects/${p.id}`}>
+                      <div className="project-cover">
+                        <Layers2 size={30} />
+                        <span>{p.name.slice(0, 20)}</span>
+                      </div>
+                      <div className="card-meta">
+                        <strong>{p.name}</strong>
+                        <small>
+                          {new Date(p.updated_at).toLocaleDateString("zh-CN")}{" "}
+                          更新
+                        </small>
+                      </div>
+                    </Link>
+                    <ProjectActions
+                      project={p}
+                      onDeleted={() => {
+                        setRemoved((ids) => [...ids, p.id]);
+                        router.refresh();
+                      }}
+                    />
+                  </article>
                 ))}
               </div>
             ) : (
