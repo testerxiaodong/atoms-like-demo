@@ -21,6 +21,8 @@ export default defineConfig({
   use: {
     ...devices["Desktop Chrome"],
     baseURL: process.env.PUBLIC_TEST_ORIGIN,
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
     trace: "off",
     screenshot: "only-on-failure",
   },

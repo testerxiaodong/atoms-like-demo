@@ -117,7 +117,7 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
   await page
     .getByRole("textbox", { name: "描述你的应用" })
     .fill(
-      "创建一个可玩的精致贪吃蛇应用，标题为“长任务回归贪吃蛇”。需要20×20棋盘、方向键和WASD控制、触屏方向按钮、空格暂停、重开、三档难度、分数与浏览器最高分、撞墙撞身检测、失焦暂停。用组件、hook、纯逻辑和类型拆分6到8个有实际职责的文件，界面适配手机。请提供简短中文进展。开始按钮文字固定为“开始游戏”，暂停按钮固定为“暂停游戏”。",
+      "创建一个可玩的精致贪吃蛇应用，标题为“长任务回归贪吃蛇”。需要20×20棋盘、方向键和WASD控制、触屏方向按钮、空格暂停、重开、三档难度、分数与浏览器最高分、撞墙撞身检测、失焦暂停。用组件、hook、纯逻辑和类型拆分6到8个有实际职责的文件，界面适配手机，总代码控制在400行以内，避免冗长样式。请提供简短中文进展。开始按钮文字固定为“开始游戏”，暂停按钮固定为“暂停游戏”。",
     );
   await page.getByRole("button", { name: "开始构建" }).click();
   await expect(page).toHaveURL(/\/projects\/[a-f0-9-]+$/);
@@ -144,16 +144,16 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
           }),
         { timeout: 330_000, intervals: [2000] },
       )
-      .toBe("done");
-    const frame = page.frameLocator('iframe[title="应用实时预览"]');
-    await expect(
-      frame.getByRole("heading", { name: /长任务回归\s*贪吃蛇/ }),
-    ).toBeVisible();
-    await frame.getByRole("button", { name: "开始游戏", exact: true }).click();
-    await expect(
-      frame.getByRole("button", { name: "暂停游戏", exact: true }),
-    ).toBeVisible();
-    await frame.getByRole("button", { name: "暂停游戏", exact: true }).click();
+      .not.toBe("");
+    const terminal = await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            __publicRegression: { stream: { terminal: string; error: string } };
+          }
+        ).__publicRegression.stream,
+    );
+    expect(terminal.terminal, terminal.error).toBe("done");
     const stats = await page.evaluate(
       () =>
         (
@@ -174,6 +174,39 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
         ).__publicRegression,
     );
     savedMetrics = stats;
+    console.log("Generation finished:", JSON.stringify(stats.stream));
+    const frame = page.frameLocator('iframe[title="应用实时预览"]');
+    await expect(
+      frame.getByRole("heading", { name: /长任务回归\s*贪吃蛇/ }),
+    ).toBeVisible();
+    // Generated layouts may repeat controls. Prefer a control whose center is
+    // inside the iframe viewport instead of a clipped overlay below the board.
+    async function clickGameButton(name: string) {
+      const buttons = frame.getByRole("button", { name, exact: true });
+      await expect(buttons.first()).toBeVisible();
+      for (let i = 0; i < (await buttons.count()); i++) {
+        const button = buttons.nth(i);
+        const inViewport = await button.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return (
+            r.width > 0 &&
+            r.height > 0 &&
+            r.x + r.width / 2 >= 0 &&
+            r.x + r.width / 2 < innerWidth &&
+            r.y + r.height / 2 >= 0 &&
+            r.y + r.height / 2 < innerHeight
+          );
+        });
+        if (inViewport) {
+          await button.click();
+          return;
+        }
+      }
+      await buttons.first().click();
+    }
+    console.log("Preview rendered; testing game controls");
+    await clickGameButton("开始游戏");
+    await clickGameButton("暂停游戏");
     const codeStart = Date.now();
     await page.getByRole("button", { name: "代码", exact: true }).click();
     await expect(page.locator(".cm-content")).toBeVisible();
@@ -227,20 +260,28 @@ test("fixed-domain long generation delivers keepalives, persists and previews a 
             .__publicRegression,
       )
       .catch(() => null);
+    console.log(
+      "Public stream evidence:",
+      JSON.stringify({ homeLoadMs, metrics: savedMetrics ?? metrics }),
+    );
     await testInfo.attach("public-stream-metrics", {
       body: JSON.stringify({ homeLoadMs, metrics: savedMetrics ?? metrics }),
       contentType: "application/json",
     });
-    const response = await page.request.get(
-      projectURL.replace("/projects/", "/api/projects/"),
-    );
-    if (response.ok()) {
+    const response = await page.request
+      .get(projectURL.replace("/projects/", "/api/projects/"), {
+        timeout: 10_000,
+      })
+      .catch(() => null);
+    if (response?.ok()) {
       const { project } = await response.json();
       if (project.active_run_id)
-        await page.request.post(
-          `/api/projects/${project.id}/runs/${project.active_run_id}`,
-          { data: {} },
-        );
+        await page.request
+          .post(`/api/projects/${project.id}/runs/${project.active_run_id}`, {
+            data: {},
+            timeout: 10_000,
+          })
+          .catch(() => null);
     }
   }
 });

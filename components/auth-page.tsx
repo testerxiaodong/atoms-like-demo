@@ -1,8 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Layers2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+const subscribeHydration = () => () => {};
+const hydratedSnapshot = () => true;
+const serverSnapshot = () => false;
+
 export function AuthPage({
   signup = false,
   configured,
@@ -14,6 +18,11 @@ export function AuthPage({
   error?: boolean;
   build?: boolean;
 }) {
+  const hydrated = useSyncExternalStore(
+    subscribeHydration,
+    hydratedSnapshot,
+    serverSnapshot,
+  );
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(
       initialError
@@ -60,7 +69,7 @@ export function AuthPage({
         </p>
         <button
           className="primary-action"
-          disabled={!configured || busy}
+          disabled={!hydrated || !configured || busy}
           onClick={login}
         >
           {busy ? (
