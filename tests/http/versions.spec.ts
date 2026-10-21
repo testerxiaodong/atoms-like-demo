@@ -79,3 +79,25 @@ test("HTTP concurrent saves at the same revision yield exactly one commit and on
   const winner = await results.find((r) => r.status() === 200)!.json();
   expect(data.project.working_files).toEqual(winner.project.working_files);
 });
+
+test("HTTP version list returns metadata and timing without source snapshots", async ({
+  context,
+}) => {
+  const p = await create(context.request);
+  expect((await save(context.request, p.id)).status()).toBe(200);
+  const response = await context.request.get(`${root}/${p.id}/versions`);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["server-timing"]).toMatch(
+    /auth;dur=[\d.]+, database;dur=[\d.]+, app;dur=[\d.]+/,
+  );
+  expect(response.headers()["cache-control"]).toBe("private, no-store");
+  const body = await response.json();
+  expect(body.versions).toHaveLength(1);
+  expect(body.versions[0]).not.toHaveProperty("files");
+  expect((await context.request.get(`${root}/bad/versions`)).status()).toBe(
+    404,
+  );
+  expect(
+    (await context.request.get(`${root}/${uuid()}/versions`)).status(),
+  ).toBe(404);
+});
