@@ -239,7 +239,9 @@ export function Workspace({
         controller.signal.aborted
           ? "已停止任务，原版本已保留。"
           : e instanceof Error
-            ? e.message
+            ? /network|fetch failed|load failed/i.test(e.message)
+              ? "生成连接已中断，请检查网络后重试。原版本已保留。"
+              : e.message
             : "生成失败",
       );
       setPrompt(text);

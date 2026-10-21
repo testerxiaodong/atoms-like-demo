@@ -117,3 +117,55 @@ test("HTTP two simultaneous generation requests allocate only one active run", a
     active_run_id: null,
   });
 });
+test("HTTP silent generation sends keepalives before completion and can still be stopped", async ({
+  context,
+  baseURL,
+}) => {
+  const p = await create(context.request, "heartbeat regression");
+  const cookie = (await context.cookies(baseURL!))
+    .map((c) => `${c.name}=${c.value}`)
+    .join("; ");
+  const response = await fetch(`${baseURL}${root}/${p.id}/chat`, {
+    method: "POST",
+    headers: { cookie, origin: baseURL!, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: "E2E_SLOW",
+      revision: 0,
+      requestKey: uuid(),
+    }),
+    signal: AbortSignal.timeout(25000),
+  });
+  expect(response.status).toBe(200);
+  const reader = response.body!.getReader();
+  let buffer = "",
+    runId = "";
+  try {
+    while (!buffer.includes("\n\n")) {
+      const chunk = await reader.read();
+      expect(chunk.done).toBe(false);
+      buffer += new TextDecoder().decode(chunk.value);
+      for (const line of buffer.split("\n")) {
+        try {
+          const event = JSON.parse(line);
+          if (event.type === "run") runId = event.id;
+        } catch {}
+      }
+    }
+    expect(runId).toBeTruthy();
+    expect(buffer).not.toContain('"type":"done"');
+    expect((await detail(context.request, p.id)).project.active_run_id).toBe(
+      runId,
+    );
+  } finally {
+    const id =
+      runId || (await detail(context.request, p.id)).project.active_run_id;
+    if (id)
+      await context.request.post(`${root}/${p.id}/runs/${id}`, { data: {} });
+    await reader.cancel();
+  }
+  await expect
+    .poll(
+      async () => (await detail(context.request, p.id)).project.active_run_id,
+    )
+    .toBeNull();
+});

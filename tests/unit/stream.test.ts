@@ -25,3 +25,5 @@ it("does not treat truncated generation as success", async () => {
     readAgentStream(new Response('{"type":"text","text":"half"}\n'), () => {}),
   ).rejects.toThrow("中断");
 });
+it('ignores keepalive lines without reporting fake progress',async()=>{const events:AgentEvent[]=[];await readAgentStream(new Response('\n\n{"type":"error","message":"finished"}\n\n'),e=>events.push(e));expect(events).toEqual([{type:'error',message:'finished'}]);});
+it('translates browser network errors into actionable feedback',async()=>{await expect(readAgentStream(new Response(new ReadableStream({start(c){c.error(new TypeError('network error'))}})),()=>{})).rejects.toThrow('生成连接已中断');});

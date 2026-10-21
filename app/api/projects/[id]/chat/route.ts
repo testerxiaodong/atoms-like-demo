@@ -1,6 +1,11 @@
+import { startHeartbeat } from "@/lib/agent/heartbeat";
 import { conversationalReply, sameFiles } from "@/lib/agent/conversation";
 import { activeRuns } from "@/lib/agent/active-runs";
-import { CodexFailure, isLoopbackRequest, runLocalCodex } from "@/lib/agent/local-codex";
+import {
+  CodexFailure,
+  isLoopbackRequest,
+  runLocalCodex,
+} from "@/lib/agent/local-codex";
 import { z } from "zod";
 import { hasModel, isLocalCodex } from "@/lib/env";
 import {
@@ -52,6 +57,7 @@ export async function POST(
       p_prompt: input.prompt,
     });
     databaseError(startError);
+    const startedAt = Date.now();
     const abort = new AbortController();
     activeRuns.set(run.id, abort);
     const timeoutMs = isLocalCodex() ? 300_000 : 100_000;
@@ -75,6 +81,15 @@ export async function POST(
             abort.abort();
           }
         }
+        const stopHeartbeat = startHeartbeat(
+          () => {
+            if (!disconnected) controller.enqueue(encoder.encode("\n"));
+          },
+          () => {
+            disconnected = true;
+            abort.abort();
+          },
+        );
         const steps: string[] = [];
         const onStep = (text: string) => {
           steps.push(text);
@@ -148,7 +163,9 @@ export async function POST(
             try {
               await buildPreview(files);
             } catch {
-              throw new ApiError("应用编译未通过，原版本已保留。请重试或缩小修改范围。");
+              throw new ApiError(
+                "应用编译未通过，原版本已保留。请重试或缩小修改范围。",
+              );
             }
             signal.throwIfAborted();
             onStep("应用编译通过；交互效果请在右侧预览中体验");
@@ -160,7 +177,9 @@ export async function POST(
             p_files: files,
             p_summary:
               text.trim().slice(-4000) ||
-              (changed ? "应用代码已更新，请在预览中检查交互效果。" : "本轮没有修改应用。你可以继续提问或描述想调整的功能。"),
+              (changed
+                ? "应用代码已更新，请在预览中检查交互效果。"
+                : "本轮没有修改应用。你可以继续提问或描述想调整的功能。"),
             p_source: "ai",
             p_run_id: run.id,
             p_steps: steps,
@@ -168,14 +187,26 @@ export async function POST(
           databaseError(error);
           emit({ type: "done", ...data });
         } catch (error) {
-          console.error("Agent turn failed:", error instanceof Error ? error.message : "Unknown error");
+          console.error("Agent turn failed:", {
+            at: new Date().toISOString(),
+            runId: run.id,
+            elapsedMs: Date.now() - startedAt,
+            reason: timeoutSignal.aborted
+              ? "timeout"
+              : request.signal.aborted
+                ? "client-disconnected"
+                : abort.signal.aborted
+                  ? "stopped-or-stream-cancelled"
+                  : "agent-or-storage",
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
           const message = timeoutSignal.aborted
             ? `生成超过 ${timeoutMs / 1000} 秒上限，已停止，原版本已保留。请缩小需求后重试。`
             : signal.aborted
-            ? "任务已停止或连接已断开，原版本已保留。"
-            : error instanceof ApiError || error instanceof CodexFailure
-              ? error.message
-              : "生成未完成，请稍后重试。原版本已保留。";
+              ? "任务已停止或连接已断开，原版本已保留。"
+              : error instanceof ApiError || error instanceof CodexFailure
+                ? error.message
+                : "生成未完成，请稍后重试。原版本已保留。";
           // A transient database/auth request failure must not strand the lock.
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
@@ -191,6 +222,7 @@ export async function POST(
           }
           emit({ type: "error", message });
         } finally {
+          stopHeartbeat();
           activeRuns.delete(run.id);
           if (!disconnected) {
             try {

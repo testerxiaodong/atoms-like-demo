@@ -27,6 +27,17 @@ export async function readAgentStream(
     buffer += decoder.decode();
     consume(buffer);
     if (!terminal) throw new Error("连接已中断，请重新打开项目检查生成结果。");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      /network|fetch failed|load failed|terminated/i.test(error.message)
+    ) {
+      throw new Error(
+        "生成连接已中断，原版本已保留。请检查网络后重试；若任务仍在运行，请先等待状态刷新。",
+        { cause: error },
+      );
+    }
+    throw error;
   } finally {
     reader.releaseLock();
   }
