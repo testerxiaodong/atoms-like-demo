@@ -102,3 +102,21 @@ it("revokes commit permission before aborting the generation process", async () 
   expect((await stop(new Request("http://localhost:3000"), context)).status).toBe(200);
   expect(abort.signal.aborted).toBe(true);
 });
+
+it("allows ten-minute local generation and reports timeout without committing", async () => {
+  const timeout = new AbortController();
+  const spy = vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  mocks.generate.mockImplementation(async ({ signal }) => {
+    timeout.abort(new DOMException("Timed out", "TimeoutError"));
+    signal.throwIfAborted();
+  });
+  try {
+    const body = await (await chat(request(), context)).text();
+    expect(spy).toHaveBeenCalledWith(600_000);
+    expect(body).toContain("生成超过 600 秒上限");
+    expect(mocks.rpc.mock.calls.some(([name]) => name === "commit_version")).toBe(false);
+    expect(mocks.rpc.mock.calls.some(([name]) => name === "fail_run")).toBe(true);
+    expect(activeRuns.size).toBe(0);
+  } finally { vi.restoreAllMocks(); }
+});

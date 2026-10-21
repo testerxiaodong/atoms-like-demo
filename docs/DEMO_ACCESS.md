@@ -4,7 +4,7 @@
 
 `.env.demo` 只需设置 `FORMA_DEMO=1` 与当前 HTTPS `DEMO_ORIGIN`（可选 `DEMO_PROXY`）。不再读取 `DEMO_ALLOWED_EMAILS` 或 `DEMO_ALLOWED_USER_IDS`。
 
-所有账号共用本机模型额度，最多同时运行一个 Codex 任务；本机生成超时上限为 300 秒，API 模式为 100 秒。演示结束关闭应用与隧道，并删除 Supabase 中失效的临时回调地址。
+所有账号共用本机模型额度，最多同时运行一个 Codex 任务；本机生成超时上限为 600 秒，API 模式为 100 秒。演示结束关闭应用与隧道，并删除 Supabase 中失效的临时回调地址。
 
 ## Google OAuth 检查
 

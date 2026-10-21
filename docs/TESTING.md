@@ -228,3 +228,11 @@ npm run test:http:cloud -- --grep 'delete|direct PostgREST|second account|anonym
 真实 Codex 协议检查仍使用 `FORMA_CODEX_PROGRESS_SMOKE=1 npx vitest run tests/integration/local-codex.test.ts`；该测试消耗实际订阅额度，检查分模块应用与逐文件消息数量，并实际编译。不要用确定性模型测试冒充这项实测。
 
 最终结果：默认单元/集成测试 **75 passed / 2 skipped**，完整 Playwright **55 passed / 3 skipped**；lint、类型检查、生产构建通过。真实 Codex 协议复测 **4 passed / 1 skipped**，约 131.71 秒，断言至少 4 个逐文件候选消息实际到达，并校验最终分模块秒表可以编译。该组剩余跳过项为另一个独立开关的最小生成 smoke，不是本轮协议检查。额外防止模型普通进展文字冒充文件事件：保留这类文字为“进展”，只有完整源码候选或工具实际操作才能进入文件列表。
+
+### 2026-10-21：本机生成超时延长
+
+本机 Codex 生成上限由 300 秒调整为 600 秒；API 模式仍为 100 秒。新增迁移 `202610210002_extended_run_timeout.sql` 将新任务数据库有效期设为 630 秒，已有任务不追溯修改。云端已执行并查询确认默认值为 `00:10:30`。路由 maxDuration 同步设为 660 秒；托管平台仍受自身限制，当前演示使用本机服务与隧道。
+
+回归验证包括路由采用 600 秒超时、超时后不提交版本且释放运行状态，以及数据库有效期 630 秒。超时测试使用可控制的 AbortSignal，未等待真实模型运行十分钟；不能作为十分钟公网生成成功的证明。
+
+本次本地结果：Vitest 76 通过、2 跳过；定向 Playwright（generation、recovery、database-concurrency）10 通过、2 个仅云端执行的并发用例跳过。lint、类型检查与生产构建通过。

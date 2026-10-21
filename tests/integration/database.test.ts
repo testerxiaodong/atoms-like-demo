@@ -15,6 +15,7 @@ beforeAll(async () => {
   );
   await db.exec(readFileSync("supabase/migrations/202610200002_conversation_turns.sql", "utf8"));
   await db.exec(readFileSync("supabase/migrations/202610200003_local_run_timeout.sql", "utf8"));
+  await db.exec(readFileSync("supabase/migrations/202610210002_extended_run_timeout.sql", "utf8"));
   await db.exec(
     `set role authenticated; set request.jwt.claim.sub='${owner}';`,
   );
@@ -67,7 +68,7 @@ it("locks competing writes during generation and leaves files intact on failure"
     [project],
   );
   const ttl = await db.query<{seconds:number}>("select extract(epoch from expires_at-created_at)::int as seconds from runs where id=$1", [run.rows[0].id]);
-  expect(ttl.rows[0].seconds).toBe(310);
+  expect(ttl.rows[0].seconds).toBe(630);
   await expect(
     db.query("select commit_version($1,1,$2::jsonb,'manual','manual')", [
       project,

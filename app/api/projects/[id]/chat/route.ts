@@ -21,7 +21,7 @@ import { validateFiles } from "@/lib/projects/files";
 import type { AgentEvent, Message } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 660;
 
 export async function POST(
   request: Request,
@@ -60,7 +60,7 @@ export async function POST(
     const startedAt = Date.now();
     const abort = new AbortController();
     activeRuns.set(run.id, abort);
-    const timeoutMs = isLocalCodex() ? 300_000 : 100_000;
+    const timeoutMs = isLocalCodex() ? 600_000 : 100_000;
     const timeoutSignal = AbortSignal.timeout(timeoutMs);
     const signal = AbortSignal.any([
       abort.signal,

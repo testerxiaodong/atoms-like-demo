@@ -28,7 +28,7 @@ npm run dev
 
 ### 数据库与登录
 
-1. 创建自己的 Supabase 项目，按文件名顺序执行 `supabase/migrations/` 中的 **全部 SQL**，每个迁移执行一次。当前共四个迁移，包含无代码变更对话、运行超时和项目删除。
+1. 创建自己的 Supabase 项目，按文件名顺序执行 `supabase/migrations/` 中的 **全部 SQL**，每个迁移执行一次。当前共五个迁移，包含无代码变更对话、运行超时和项目删除。
 2. 在 `.env.local` 填入 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`、`NEXT_PUBLIC_APP_URL`。
 3. 在 Supabase 启用 Google provider。Google OAuth 回调使用 Supabase 提供的 `/auth/v1/callback`；Supabase 允许的应用回调为实际站点的 `/auth/callback`。详细步骤见 [演示访问说明](docs/DEMO_ACCESS.md)。
 
@@ -45,7 +45,7 @@ AGENT_BACKEND=codex-local
 CODEX_CLI_PATH=/absolute/path/to/codex
 ```
 
-本地开发可用；生产构建需显式开启演示模式，Vercel 环境不启用此后端。CLI 使用临时只读目录并禁用 shell、浏览器、应用等工具；只接收提供的项目上下文，逐个返回完整候选源码和最终文件清单。候选内容通过校验、编译和版本事务后才保存。转发公开进展，不展示内部推理；本机任务上限 300 秒。
+本地开发可用；生产构建需显式开启演示模式，Vercel 环境不启用此后端。CLI 使用临时只读目录并禁用 shell、浏览器、应用等工具；只接收提供的项目上下文，逐个返回完整候选源码和最终文件清单。候选内容通过校验、编译和版本事务后才保存。转发公开进展，不展示内部推理；本机任务上限 600 秒。
 
 所有模式限制最多 20 个文件、单文件 100 KB、项目文件总量 300 KB。固定运行入口和依赖由平台管理，当前允许 React、React DOM、Lucide；esbuild 使用仓库安装的 React 19 运行时打包。
 
