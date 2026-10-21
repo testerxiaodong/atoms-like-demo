@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { test } from '../support/auth';
 test.beforeEach(async ({ page }) => {
-  const response=await page.request.post('/api/projects',{data:{name:`E2E ${test.info().title}`}});
+  const response=await page.request.post('/api/projects',{data:{name:`E2E ${test.info().title}`.slice(0, 80)}});
   expect(response.status()).toBe(201);
   await page.goto(`/projects/${(await response.json()).project.id}`);
 });
@@ -50,4 +50,21 @@ test('embedded preview is visible, interactive and reloadable at mobile width', 
   const frame=page.frameLocator('iframe[title="应用实时预览"]');
   await frame.getByRole('button', { name: '计数：0' }).click();
   await expect(frame.getByRole('button', { name: '计数：1' })).toBeVisible();
+});
+test('switching code and preview preserves the running app; refresh reuses compiled output', async ({ page }) => {
+  await success(page);
+  const requests: string[] = [];
+  page.on('request', request => {
+    if (new URL(request.url()).pathname === '/api/preview') requests.push(request.url());
+  });
+  const frame = page.frameLocator('iframe[title="应用实时预览"]');
+  await page.getByRole('button', { name: '代码', exact: true }).click();
+  await expect(page.locator('.cm-content')).toBeVisible();
+  await page.getByRole('button', { name: '预览', exact: true }).click();
+  await expect(frame.getByRole('button', { name: '计数：1' })).toBeVisible();
+  await page.getByRole('button', { name: '刷新预览', exact: true }).click();
+  await expect(frame.getByRole('button', { name: '计数：0' })).toBeVisible();
+  // Allow the old 400ms debounce to elapse so an accidental rebuild is detected.
+  await page.waitForTimeout(700);
+  expect(requests).toEqual([]);
 });

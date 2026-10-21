@@ -5,6 +5,10 @@ import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
+const publicMode = process.argv.includes("--public-demo");
+const extraArgs = process.argv
+  .slice(2)
+  .filter((arg) => arg !== "--public-demo");
 const local = parse(await readFile(".env.local"));
 const secret = parse(await readFile(".env.cloud-test"));
 process.env.CLOUD_TEST_PROXY ||= secret.CLOUD_TEST_PROXY || "";
@@ -19,12 +23,30 @@ assert(secret.SUPABASE_SERVICE_ROLE_KEY, "Missing admin credential");
 const admin = createClient(url, secret.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+const publicOrigin = publicMode
+  ? parse(await readFile(".env.demo")).DEMO_ORIGIN
+  : "";
+if (publicMode) {
+  assert(
+    publicOrigin && new URL(publicOrigin).protocol === "https:",
+    "A configured HTTPS DEMO_ORIGIN is required",
+  );
+  assert.equal(new URL(publicOrigin).origin, publicOrigin.replace(/\/$/, ""));
+}
 const runId = randomUUID();
 const users = [];
 const tables = ["projects", "versions", "messages", "runs"];
 await mkdir("cloud-test-results", { recursive: true });
 const manifestPath = `cloud-test-results/cloud-${runId}.json`;
-const manifest = { runId, url, users, projectIds: [], status: "preparing" };
+const manifest = {
+  runId,
+  url,
+  users,
+  projectIds: [],
+  status: "preparing",
+  mode: publicMode ? "public-demo" : "cloud-http",
+  publicOrigin,
+};
 const journal = () =>
   writeFile(manifestPath, JSON.stringify(manifest, null, 2), { mode: 0o600 });
 async function rows(table) {
@@ -85,6 +107,7 @@ try {
   const env = {
     ...process.env,
     NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --import=${process.cwd()}/scripts/testing/cloud-network-diagnostics.mjs`,
+    PUBLIC_TEST_ORIGIN: publicOrigin,
     CLOUD_TEST_URL: url,
     CLOUD_TEST_KEY: local.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     CLOUD_TEST_EMAIL: users[0].email,
@@ -95,7 +118,9 @@ try {
   manifest.status = "running";
   await journal();
   console.log(
-    "Cloud HTTP tests: two isolated users created; real Auth/PostgREST/PostgreSQL, deterministic model.",
+    publicMode
+      ? "Public demo regression: isolated accounts, fixed HTTPS domain, real model and database."
+      : "Cloud HTTP tests: two isolated users created; real Auth/PostgREST/PostgreSQL, deterministic model.",
   );
   const code = await new Promise((resolve, reject) => {
     child = spawn(
@@ -103,9 +128,11 @@ try {
       [
         "node_modules/@playwright/test/cli.js",
         "test",
-        "tests/http",
-        "--config=playwright.cloud.config.ts",
-        ...process.argv.slice(2),
+        publicMode ? "tests/public" : "tests/http",
+        publicMode
+          ? "--config=playwright.public.config.ts"
+          : "--config=playwright.cloud.config.ts",
+        ...extraArgs,
       ],
       { env, stdio: "inherit", detached: true },
     );

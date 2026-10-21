@@ -11,9 +11,16 @@ import type { FileMap } from "@/lib/types";
 const customSetup = { dependencies: runtimeDependencies };
 function LivePreview({ paths }: { paths: string[] }) {
   const { sandpack } = useSandpack();
-  const signature = JSON.stringify(Object.fromEntries(paths.map(p => [p, sandpack.files[p]?.code ?? ""])));
-  const [result, setResult] = useState<{ signature: string; html: string; error: string } | null>(null);
+  const signature = JSON.stringify(
+    Object.fromEntries(paths.map((p) => [p, sandpack.files[p]?.code ?? ""])),
+  );
+  const [result, setResult] = useState<{
+    signature: string;
+    html: string;
+    error: string;
+  } | null>(null);
   const [revision, setRevision] = useState(0);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
@@ -26,20 +33,54 @@ function LivePreview({ paths }: { paths: string[] }) {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "预览编译失败");
-        if (!controller.signal.aborted) setResult({ signature, html: data.html, error: "" });
+        if (!controller.signal.aborted)
+          setResult({ signature, html: data.html, error: "" });
       } catch (error) {
-        if (!controller.signal.aborted) setResult({ signature, html: "", error: error instanceof Error ? error.message : "预览加载失败" });
+        if (!controller.signal.aborted)
+          setResult({
+            signature,
+            html: "",
+            error: error instanceof Error ? error.message : "预览加载失败",
+          });
       }
     }, 400);
-    return () => { clearTimeout(timer); controller.abort(); };
-  }, [signature, revision]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [signature, retry]);
   const pending = result?.signature !== signature;
   return (
     <div className="local-preview">
-      {pending && <div className="preview-status" role="status">正在编译预览…</div>}
-      {!pending && result?.error && <div className="preview-status" role="alert">{result.error}</div>}
-      {!pending && result?.html && <iframe key={revision} title="应用实时预览" sandbox="allow-scripts" srcDoc={result.html} />}
-      <button className="preview-reload" type="button" aria-label="刷新预览" onClick={() => setRevision(v => v + 1)}>↻</button>
+      {pending && (
+        <div className="preview-status" role="status">
+          正在编译预览…
+        </div>
+      )}
+      {!pending && result?.error && (
+        <div className="preview-status" role="alert">
+          {result.error}
+        </div>
+      )}
+      {!pending && result?.html && (
+        <iframe
+          key={revision}
+          title="应用实时预览"
+          sandbox="allow-scripts"
+          srcDoc={result.html}
+        />
+      )}
+      <button
+        className="preview-reload"
+        type="button"
+        aria-label="刷新预览"
+        onClick={() => {
+          if (result?.error) setRetry((v) => v + 1);
+          else setRevision((v) => v + 1);
+        }}
+      >
+        ↻
+      </button>
     </div>
   );
 }

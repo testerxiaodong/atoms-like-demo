@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
     "test:http": "playwright test tests/http",
+    "test:public:long": "node scripts/testing/cloud-http-test.mjs --public-demo",
     "test:http:cloud": "node scripts/testing/cloud-http-test.mjs",
     "test:http:cloud:cleanup": "node scripts/testing/cloud-test-cleanup.mjs",
     "demo:start": "node scripts/demo/manage.mjs start",
