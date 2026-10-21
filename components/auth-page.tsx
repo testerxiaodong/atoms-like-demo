@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { Layers2, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 const subscribeHydration = () => () => {};
 const hydratedSnapshot = () => true;
 const serverSnapshot = () => false;
@@ -40,6 +39,7 @@ export function AuthPage({
       )
         sessionStorage.setItem("forma:build-intent", "1");
       else sessionStorage.removeItem("forma:build-intent");
+      const { createClient } = await import("@/lib/supabase/client");
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: {

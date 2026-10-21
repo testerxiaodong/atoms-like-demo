@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Layers2, Sparkles, Loader2, Code2, Eye, History } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { examples, getExample } from "@/lib/templates/examples";
 export function Home({
   configured,
@@ -91,6 +90,7 @@ export function Home({
     if (loggingOut) return;
     setLoggingOut(true);
     try {
+      const { createClient } = await import("@/lib/supabase/client");
       const { error } = await createClient().auth.signOut({ scope: "local" });
       if (error) throw error;
       sessionStorage.removeItem("forma:created-project");
