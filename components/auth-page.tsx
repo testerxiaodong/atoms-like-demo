@@ -1,11 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { Layers2, Loader2 } from "lucide-react";
-const subscribeHydration = () => () => {};
-const hydratedSnapshot = () => true;
-const serverSnapshot = () => false;
-
 export function AuthPage({
   signup = false,
   configured,
@@ -17,11 +14,7 @@ export function AuthPage({
   error?: boolean;
   build?: boolean;
 }) {
-  const hydrated = useSyncExternalStore(
-    subscribeHydration,
-    hydratedSnapshot,
-    serverSnapshot,
-  );
+  const hydrated = useHydrated();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(
       initialError

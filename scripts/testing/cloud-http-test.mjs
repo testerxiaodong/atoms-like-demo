@@ -119,7 +119,7 @@ try {
   await journal();
   console.log(
     publicMode
-      ? "Public demo regression: isolated accounts, fixed HTTPS domain, real model and database."
+      ? "Public demo regression: isolated accounts, fixed HTTPS domain and real database; model use depends on the selected test."
       : "Cloud HTTP tests: two isolated users created; real Auth/PostgREST/PostgreSQL, deterministic model.",
   );
   const code = await new Promise((resolve, reject) => {

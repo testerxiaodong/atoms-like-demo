@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Layers2, Sparkles, Loader2, Code2, Eye, History } from "lucide-react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { examples, getExample } from "@/lib/templates/examples";
 export function Home({
   configured,
@@ -18,6 +19,7 @@ export function Home({
   exampleId?: string;
 }) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [prompt, setPrompt] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -123,7 +125,7 @@ export function Home({
               <Link href="/projects">我的项目</Link>
               <button
                 className="nav-quiet"
-                disabled={loggingOut}
+                disabled={!hydrated || loggingOut}
                 onClick={logout}
               >
                 {loggingOut ? "正在退出…" : "退出登录"}
@@ -174,6 +176,7 @@ export function Home({
           >
             <textarea
               aria-label="描述你的应用"
+              disabled={!hydrated}
               placeholder="比如，一个记录旅行灵感的小网站…"
               value={prompt}
               maxLength={4000}
@@ -185,7 +188,7 @@ export function Home({
               </span>
               <button
                 className="primary-action"
-                disabled={busy || !configured || !prompt.trim()}
+                disabled={!hydrated || busy || !configured || !prompt.trim()}
               >
                 {busy ? <Loader2 size={16} className="spin" /> : null}
                 {busy ? "正在创建…" : "开始构建"}
@@ -208,7 +211,7 @@ export function Home({
               "带分类的灵感收藏夹",
               "每日习惯打卡应用",
             ].map((s) => (
-              <button key={s} onClick={() => setPrompt(s)}>
+              <button key={s} disabled={!hydrated} onClick={() => setPrompt(s)}>
                 {s}
               </button>
             ))}

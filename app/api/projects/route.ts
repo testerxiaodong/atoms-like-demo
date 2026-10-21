@@ -25,8 +25,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const started = performance.now();
   try {
     const { db } = await authenticated();
+    const authenticatedAt = performance.now();
     const { name, exampleId } = z
       .object({
         name: z.string().trim().min(1).max(80),
@@ -36,12 +38,21 @@ export async function POST(request: Request) {
           .optional(),
       })
       .parse(await readBody(request));
+    const databaseStarted = performance.now();
     const { data, error } = await db.rpc("create_project", {
       p_name: name,
       p_files: getExample(exampleId)?.files || emptyFiles,
     });
     databaseError(error);
-    return NextResponse.json({ project: data }, { status: 201 });
+    return NextResponse.json(
+      { project: data },
+      {
+        status: 201,
+        headers: {
+          "Server-Timing": `auth;dur=${(authenticatedAt - started).toFixed(1)}, database;dur=${(performance.now() - databaseStarted).toFixed(1)}, app;dur=${(performance.now() - started).toFixed(1)}`,
+        },
+      },
+    );
   } catch (error) {
     return errorResponse(error);
   }

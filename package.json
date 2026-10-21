@@ -20,7 +20,8 @@
     "demo:tunnel": "cloudflared tunnel --protocol http2 --no-autoupdate run --token-file \"$HOME/.cloudflared/forma-demo.token\"",
     "demo:stop": "node scripts/demo/manage.mjs stop",
     "demo:status": "node scripts/demo/manage.mjs status",
-    "demo:serve": "node scripts/demo/start.mjs"
+    "demo:serve": "node scripts/demo/start.mjs",
+    "test:public:projects": "node scripts/testing/cloud-http-test.mjs --public-demo --grep \"project creation latency\""
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.74",

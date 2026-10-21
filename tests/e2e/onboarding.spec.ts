@@ -41,3 +41,22 @@ anonymous('denied OAuth retains build intent and retries without losing the orig
  await page.goto('/');await page.getByRole('textbox',{name:'描述你的应用'}).fill('E2E_SUCCESS');await page.getByRole('button',{name:'开始构建'}).click();await page.getByRole('button',{name:'使用 Google 登录'}).click();
  await expect(page.getByRole('alert').filter({hasText:'登录未完成'})).toBeVisible();await page.unroute('http://localhost:54329/auth/v1/authorize**');await page.getByRole('button',{name:'使用 Google 登录'}).click();await generated(page);
 });
+anonymous('slow JavaScript loading cannot lose the home prompt before hydration', async ({ page }) => {
+ let release!: () => void;
+ const scriptsReady = new Promise<void>(resolve => { release = resolve; });
+ await page.route('**/_next/static/**/*.js', async route => {
+   await scriptsReady;
+   await route.continue();
+ });
+ const input = page.getByRole('textbox', { name: '描述你的应用' });
+ try {
+   await page.goto('/', { waitUntil: 'commit' });
+   await expect(input).toBeDisabled();
+   await expect(page.getByRole('button', { name: '开始构建' })).toBeDisabled();
+ } finally { release(); }
+ await expect(input).toBeEnabled();
+ await input.fill('慢加载后保留的需求');
+ await page.getByRole('button', { name: '开始构建' }).click();
+ await expect(page).toHaveURL(/\/login\?next=build$/);
+ expect(await page.evaluate(() => sessionStorage.getItem('forma:login-draft'))).toBe('慢加载后保留的需求');
+});
