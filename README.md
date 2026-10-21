@@ -289,8 +289,14 @@ DEMO_ORIGIN=https://你的临时域名
 ```
 
 4. 在 Supabase Auth Redirect URLs 添加精确的 `https://你的临时域名/auth/callback`，保留原有回调。
-5. `npm run demo:start`，使用自己的 Google 账号登录临时地址。所有登录账号均可体验，接口仍校验登录与项目所有权，生成校验精确来源，Codex 同时只运行一个任务。
+5. `npm run demo:serve`，使用自己的 Google 账号登录临时地址。所有登录账号均可体验，接口仍校验登录与项目所有权，生成校验精确来源，Codex 同时只运行一个任务。
 
 停止演示时关闭应用与隧道，并移除 Supabase 中对应临时回调。重开隧道若域名变化，更新 `.env.demo` 和回调后重启应用。不要提交 `.env.demo`、数据库管理密钥或 Codex 登录凭据。临时隧道没有可用性保证，长任务和流式传输应每次实际验证；正式交付使用模型 API 与稳定部署。
 
 演示访问方式与 Google OAuth 配置详见 [演示账号配置](docs/DEMO_ACCESS.md)。
+
+### 已配置固定域名的一键启动
+
+当前入口：https://forma.coder-cengdong.site
+
+`npm run demo:start` 后台启动应用和固定隧道，`npm run demo:stop` 一起停止，`npm run demo:status` 查看状态。macOS 可双击根目录的 `启动演示.command` / `停止演示.command`。首次配置和日志位置见 [固定域名说明](docs/DEMO_ACCESS.md#固定域名与重启)。代码更新后先 `npm run demo:stop`，再构建并重新启动。电脑需保持在线。

@@ -16,3 +16,5 @@ cloud-test-results/
 # Local deployment state and debugging screenshots
 .vercel/
 docs/*.png
+
+.demo/

@@ -10,8 +10,11 @@ async function create(page:Page,name:string) {
 }
 async function send(page:Page,text:string) {
   await input(page).fill(text);
+  const completed = page.waitForResponse(response => response.request().method() === 'POST' && response.url().endsWith('/chat'));
   await page.getByRole('button',{name:'发送消息',exact:true}).click();
-  await expect(page.getByRole('button',{name:'停止任务',exact:true})).toBeVisible();
+  const response = await completed;
+  expect(response.ok()).toBe(true);
+  await response.finished();
   await expect(page.getByRole('button',{name:'发送消息',exact:true})).toBeVisible();
   await expect(input(page)).toBeEnabled();
 }

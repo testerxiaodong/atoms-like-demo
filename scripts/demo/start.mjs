@@ -29,7 +29,7 @@ const child = spawn(
     "--hostname",
     "localhost",
     "--port",
-    "3002",
+    process.env.DEMO_PORT || "3002",
   ],
   { env, stdio: "inherit" },
 );

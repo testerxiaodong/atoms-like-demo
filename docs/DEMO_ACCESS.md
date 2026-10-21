@@ -38,13 +38,16 @@
 
 使用 Cloudflare 命名隧道 `forma-demo`，转发到本机 `http://localhost:3002`。域名与隧道不会随进程重启变化。凭据保存在本机 `~/.cloudflared/forma-demo.token`，权限 600，不在仓库中。
 
-重启后，在项目目录分别打开两个终端运行：
+重启后，在项目目录执行一次即可后台启动应用与固定隧道，终端可关闭：
 
 ```sh
 npm run demo:start
-npm run demo:tunnel
+npm run demo:status  # 查看运行状态
+npm run demo:stop    # 一起停止应用和隧道
 ```
 
 代码有更新时先执行 `npm run build`。`.env.demo` 的 `DEMO_ORIGIN` 设为 `https://forma.coder-cengdong.site`。Supabase Site URL 使用同一固定地址，Redirect URLs 包含其 `/auth/callback`。Google OAuth 客户端仍回调 Supabase，无需修改。
 
-结束演示时在两个终端按 Ctrl+C。电脑关机或服务停止时网站暂不可用；重新运行以上命令后原链接恢复，无需重新发链接。当前没有设置开机自动运行。
+macOS 也可双击仓库根目录的 `启动演示.command` 或 `停止演示.command`。日志位于被 Git 忽略的 `.demo/`，启动失败时查看 `manager.log`、`app.log` 和 `tunnel.log`。重复启动不会创建第二份进程，任一子进程退出会关闭另一项服务。
+
+结束演示时执行 `npm run demo:stop`。电脑关机或服务停止时网站暂不可用；重新运行以上命令后原链接恢复，无需重新发链接。当前没有设置开机自动运行。
