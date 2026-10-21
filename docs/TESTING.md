@@ -108,3 +108,11 @@ npm run test:http:cloud:cleanup -- cloud-test-results/cloud-<运行ID>.json
 4. 在最终访问域名手动验证 Google 登录、退出和换号，以及创建项目、生成、停止后重发、失败恢复和右侧预览交互。自动化不代替真实 Google 授权与最终域名回调验收。
 
 演示启动方式和 OAuth 回调配置见 [演示访问说明](DEMO_ACCESS.md)。
+
+## 首页与登录流程回归
+
+`tests/e2e/onboarding.spec.ts` 覆盖首页直接生成、刷新与重新访问不重复发送、注册后自动续接、授权失败重试、自动生成失败恢复、自动任务停止后重发、4 个示例交互、示例源码复制和未知示例拒绝，以及移动端横向溢出检查。
+
+`tests/components/home.test.tsx` 覆盖重复点击只创建一次、创建失败保留草稿、登录注册的 Google 选账号参数；`tests/components/workspace.test.tsx` 验证 React StrictMode 下只消费一次待执行任务，以及已有活跃任务不自动重发。OAuth 回调单独验证允许的本地跳转和拒绝外部重定向。
+
+这组浏览器 OAuth 回归使用隔离认证服务，验证应用衔接；正式发布仍需按上面的清单验证真实 Google 授权。

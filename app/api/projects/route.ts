@@ -6,6 +6,7 @@ import {
   errorResponse,
   readBody,
 } from "@/lib/projects/api";
+import { getExample } from "@/lib/templates/examples";
 import { emptyFiles } from "@/lib/templates/react";
 
 export async function GET() {
@@ -26,12 +27,18 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { db } = await authenticated();
-    const { name } = z
-      .object({ name: z.string().trim().min(1).max(80) })
+    const { name, exampleId } = z
+      .object({
+        name: z.string().trim().min(1).max(80),
+        exampleId: z
+          .string()
+          .refine((id) => !!getExample(id), "未知示例")
+          .optional(),
+      })
       .parse(await readBody(request));
     const { data, error } = await db.rpc("create_project", {
       p_name: name,
-      p_files: emptyFiles,
+      p_files: getExample(exampleId)?.files || emptyFiles,
     });
     databaseError(error);
     return NextResponse.json({ project: data }, { status: 201 });

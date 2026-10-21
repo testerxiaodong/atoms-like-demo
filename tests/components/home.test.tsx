@@ -1,40 +1,111 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { Home } from "@/components/home";
-const auth = vi.hoisted(() => ({ signInWithOAuth: vi.fn(), signOut: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth }) }));
+import { AuthPage } from "@/components/auth-page";
+const mocks = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  signInWithOAuth: vi.fn(),
+  signOut: vi.fn(),
+}));
+vi.mock("next/navigation", () => ({ useRouter: () => mocks }));
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ auth: mocks }),
+}));
 beforeEach(() => {
-  vi.resetAllMocks(); sessionStorage.clear();
-  HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
-  HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+  vi.resetAllMocks();
+  sessionStorage.clear();
 });
-afterEach(cleanup);
-it("gates anonymous creation with a login dialog and retains the user's draft", () => {
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+it("routes anonymous creation to login with a preserved draft", () => {
   render(<Home configured />);
-  const input = screen.getByRole("textbox");
-  fireEvent.change(input, { target: { value: "我的贪吃蛇" } });
-  fireEvent.click(screen.getByRole("button", { name: "创建应用" }));
-  expect(screen.getByRole("dialog", { name: "欢迎来到 Forma" })).toBeTruthy();
-  expect(auth.signInWithOAuth).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "关闭登录窗口" }));
-  expect((input as HTMLTextAreaElement).value).toBe("我的贪吃蛇");
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "我的贪吃蛇" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "开始构建" }));
+  expect(mocks.push).toHaveBeenCalledWith("/login?next=build");
+  expect(sessionStorage.getItem("forma:login-draft")).toBe("我的贪吃蛇");
 });
-it("always requests Google's account picker and preserves the draft across OAuth", async () => {
-  auth.signInWithOAuth.mockResolvedValue({ error: null });
-  render(<Home configured />);
-  fireEvent.change(screen.getByRole("textbox"), { target: { value: "做一个小游戏" } });
-  fireEvent.click(screen.getByRole("button", { name: "注册 / 登录" }));
-  fireEvent.click(screen.getByRole("button", { name: "使用 Google 注册 / 登录" }));
-  await waitFor(() => expect(auth.signInWithOAuth).toHaveBeenCalledWith({ provider: "google", options: { redirectTo: `${location.origin}/auth/callback`, queryParams: { prompt: "select_account" } } }));
-  expect(sessionStorage.getItem("forma:login-draft")).toBe("做一个小游戏");
+it.each([false, true])(
+  "Google login and signup preserve build intent and always request account selection: %s",
+  async (signup) => {
+    mocks.signInWithOAuth.mockResolvedValue({ error: null });
+    render(<AuthPage configured build signup={signup} />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: signup ? "使用 Google 注册" : "使用 Google 登录",
+      }),
+    );
+    await waitFor(() =>
+      expect(mocks.signInWithOAuth).toHaveBeenCalledWith({
+        provider: "google",
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+          queryParams: { prompt: "select_account" },
+        },
+      }),
+    );
+  },
+);
+it("prevents double project creation and hands off an automatic prompt", async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValue(Response.json({ project: { id: "new" } }));
+  vi.stubGlobal("fetch", fetcher);
+  render(<Home configured signedIn />);
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "做一个游戏" },
+  });
+  const button = screen.getByRole("button", { name: "开始构建" });
+  fireEvent.click(button);
+  fireEvent.click(button);
+  await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/projects/new"));
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(sessionStorage.getItem("autostart:new")).toBe("1");
+  expect(sessionStorage.getItem("prompt:new")).toBe("做一个游戏");
 });
-it("shows signout errors and allows another attempt rather than staying busy", async () => {
-  auth.signOut.mockResolvedValue({ error: new Error("network unavailable") });
+it("keeps the draft and unlocks after a create error", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue(Response.json({ error: "连接失败" }, { status: 503 })),
+  );
+  render(<Home configured signedIn />);
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "保存需求" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "开始构建" }));
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toContain("连接失败"),
+  );
+  expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).toBe(
+    "保存需求",
+  );
+  expect(
+    (screen.getByRole("button", { name: "开始构建" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(false);
+});
+it("shows signout errors and allows another attempt", async () => {
+  mocks.signOut.mockResolvedValue({ error: new Error("network") });
   render(<Home configured signedIn />);
   fireEvent.click(screen.getByRole("button", { name: "退出登录" }));
-  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("退出登录失败"));
-  expect((screen.getByRole("button", { name: "退出登录" }) as HTMLButtonElement).disabled).toBe(false);
-  expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toContain("退出登录失败"),
+  );
+  expect(
+    (screen.getByRole("button", { name: "退出登录" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(false);
 });

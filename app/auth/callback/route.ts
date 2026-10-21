@@ -10,10 +10,23 @@ export async function GET(request: Request) {
     try {
       const db = await createClient();
       const { error } = await db.auth.exchangeCodeForSession(code);
-      if (!error) return NextResponse.redirect(new URL("/projects", origin));
+      if (!error)
+        return NextResponse.redirect(
+          new URL(
+            url.searchParams.get("next") === "build"
+              ? "/?resume=1"
+              : "/projects",
+            origin,
+          ),
+        );
     } catch {
       // Network failures should return to a retryable login screen too.
     }
   }
-  return NextResponse.redirect(new URL("/?error=auth", origin));
+  return NextResponse.redirect(
+    new URL(
+      `/login?error=auth${url.searchParams.get("next") === "build" ? "&next=build" : ""}`,
+      origin,
+    ),
+  );
 }

@@ -1,14 +1,20 @@
 import { Workspace } from "@/components/workspace/workspace";
+import { getExample } from "@/lib/templates/examples";
 import { demoFiles, TEMPLATE_VERSION } from "@/lib/templates/react";
-export default function Demo() {
+export default async function Demo({
+  searchParams,
+}: {
+  searchParams: Promise<{ example?: string }>;
+}) {
+  const example = getExample((await searchParams).example);
   return (
     <Workspace
       isDemo
       initialProject={{
         id: "demo",
         owner_id: "demo",
-        name: "小事清单",
-        working_files: demoFiles,
+        name: example?.name || "小事清单",
+        working_files: example?.files || demoFiles,
         template_version: TEMPLATE_VERSION,
         revision: 0,
         head_version_id: null,

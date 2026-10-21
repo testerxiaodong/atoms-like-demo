@@ -24,3 +24,12 @@ it('uses the configured HTTPS demo origin behind the local reverse proxy',async(
     expect(response.headers.get('location')).toBe('https://demo.example.com/projects');
   } finally {vi.unstubAllEnvs();}
 });
+
+it('resumes only the allowed build destination and ignores external next URLs',async()=>{
+ const resumed=await GET(new Request('http://localhost:3000/auth/callback?code=valid&next=build'));
+ expect(resumed.headers.get('location')).toBe('http://localhost:3000/?resume=1');
+ const external=await GET(new Request('http://localhost:3000/auth/callback?code=valid&next=https://evil.test'));
+ expect(external.headers.get('location')).toBe('http://localhost:3000/projects');
+ const failed=await GET(new Request('http://localhost:3000/auth/callback?error=access_denied&next=build'));
+ expect(failed.headers.get('location')).toBe('http://localhost:3000/login?error=auth&next=build');
+});

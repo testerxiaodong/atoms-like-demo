@@ -93,14 +93,35 @@ export function Workspace({
     setSource(p.working_files);
     setSelected(null);
   }, []);
+  const autoStarted = useRef(false);
   // Restore the browser-only draft after hydration; it cannot be read on the server.
   useEffect(() => {
     const pending = sessionStorage.getItem(`prompt:${initialProject.id}`);
     if (pending) {
+      const auto =
+        sessionStorage.getItem(`autostart:${initialProject.id}`) === "1";
+      sessionStorage.removeItem(`autostart:${initialProject.id}`);
+      sessionStorage.removeItem(`prompt:${initialProject.id}`);
+      sessionStorage.removeItem("forma:created-project");
+      sessionStorage.removeItem("forma:login-draft");
+      sessionStorage.removeItem("forma:example");
+      sessionStorage.removeItem("forma:build-intent");
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPrompt(pending);
-      sessionStorage.removeItem(`prompt:${initialProject.id}`);
+      if (
+        auto &&
+        !autoStarted.current &&
+        !initialProject.active_run_id &&
+        initialMessages.length === 0 &&
+        modelReady &&
+        !isDemo
+      ) {
+        autoStarted.current = true;
+        void send(pending);
+      }
     }
+    // Consume the handoff exactly once. Reopening or refreshing never resends it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProject.id]);
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,10 +165,17 @@ export function Workspace({
       setError(e instanceof Error ? e.message : "刷新失败");
     }
   }
-  async function send() {
-    if (!prompt.trim() || locked || isDemo || !modelReady || dirty || selected)
+  async function send(submitted = prompt) {
+    if (
+      !submitted.trim() ||
+      locked ||
+      isDemo ||
+      !modelReady ||
+      dirty ||
+      selected
+    )
       return;
-    const text = prompt.trim();
+    const text = submitted.trim();
     const controller = new AbortController();
     requestAbort.current = controller;
     stopRequested.current = false;
@@ -207,7 +235,13 @@ export function Workspace({
         if (event.type === "error") throw new Error(event.message);
       });
     } catch (e) {
-      setError(controller.signal.aborted ? "已停止任务，原版本已保留。" : e instanceof Error ? e.message : "生成失败");
+      setError(
+        controller.signal.aborted
+          ? "已停止任务，原版本已保留。"
+          : e instanceof Error
+            ? e.message
+            : "生成失败",
+      );
       setPrompt(text);
     } finally {
       setBusy(false);
@@ -472,29 +506,37 @@ export function Workspace({
                   <Sparkles size={12} />
                   Enter 发送 · Shift+Enter 换行
                 </span>
-                {(sending || runId || project.active_run_id) ? <button
-                  type="button"
-                  className="send-button stop-button"
-                  aria-label={stopping ? "正在停止" : "停止任务"}
-                  title="停止任务"
-                  disabled={stopping}
-                  onClick={() => void stop()}
-                >
-                  {stopping ? <Loader2 size={17} className="spin" /> : <Square size={15} fill="currentColor" />}
-                </button> : <button
-                  className="send-button"
-                  aria-label="发送消息"
-                  disabled={
-                    isDemo ||
-                    locked ||
-                    !modelReady ||
-                    !prompt.trim() ||
-                    dirty ||
-                    !!selected
-                  }
-                >
-                  <ArrowUp size={17} />
-                </button>}
+                {sending || runId || project.active_run_id ? (
+                  <button
+                    type="button"
+                    className="send-button stop-button"
+                    aria-label={stopping ? "正在停止" : "停止任务"}
+                    title="停止任务"
+                    disabled={stopping}
+                    onClick={() => void stop()}
+                  >
+                    {stopping ? (
+                      <Loader2 size={17} className="spin" />
+                    ) : (
+                      <Square size={15} fill="currentColor" />
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    className="send-button"
+                    aria-label="发送消息"
+                    disabled={
+                      isDemo ||
+                      locked ||
+                      !modelReady ||
+                      !prompt.trim() ||
+                      dirty ||
+                      !!selected
+                    }
+                  >
+                    <ArrowUp size={17} />
+                  </button>
+                )}
               </div>
             </form>
             <p className="composer-caption">
@@ -524,7 +566,16 @@ export function Workspace({
               {selected ? `历史版本 v${selected.number}` : "应用预览"}
             </span>
             <div className="device-tabs">
-              {!isDemo && <a href={`/api/projects/${project.id}/preview`} target="_blank" rel="noopener noreferrer" title="打开已保存版本的独立预览">独立预览 ↗</a>}
+              {!isDemo && (
+                <a
+                  href={`/api/projects/${project.id}/preview`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="打开已保存版本的独立预览"
+                >
+                  独立预览
+                </a>
+              )}
               <button
                 aria-label="桌面预览"
                 className={!mobile ? "active" : ""}

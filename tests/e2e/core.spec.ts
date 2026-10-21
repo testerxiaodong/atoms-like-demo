@@ -3,10 +3,10 @@ import { createServerClient } from '@supabase/ssr';
 import { test } from '../support/auth';
 const input = (page:Page) => page.getByRole('textbox',{name:'给构建助手发消息'});
 async function create(page:Page,name:string) {
-  await page.goto('/');
-  await page.getByRole('textbox',{name:'描述你的应用'}).fill(name);
-  await page.getByRole('button',{name:'创建应用',exact:true}).click();
-  await expect(page).toHaveURL(/\/projects\/[a-f0-9-]+$/);
+  const response=await page.request.post('/api/projects',{data:{name}});
+  expect(response.status()).toBe(201);
+  await page.goto(`/projects/${(await response.json()).project.id}`);
+  await input(page).fill(name);
 }
 async function send(page:Page,text:string) {
   await input(page).fill(text);
@@ -25,13 +25,14 @@ async function state(page:Page) {
 anonymous('anonymous home gates creation, retains draft and protects API',async({page})=>{
   await page.goto('/');
   await page.getByRole('textbox',{name:'描述你的应用'}).fill('匿名草稿');
-  await page.getByRole('button',{name:'创建应用',exact:true}).click();
-  await expect(page.getByRole('dialog',{name:'欢迎来到 Forma'})).toBeVisible();
-  await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'开始构建',exact:true}).click();
+  await expect(page).toHaveURL(/\/login\?next=build$/);
+  await page.getByRole('link',{name:'返回首页'}).click();
   await expect(page.getByRole('textbox',{name:'描述你的应用'})).toHaveValue('匿名草稿');
   expect((await page.request.post('/api/projects',{data:{name:'forbidden'}})).status()).toBe(401);
   await page.goto('/projects');await expect(page).toHaveURL('http://localhost:3001/');
   await page.getByRole('link',{name:'探索示例'}).click();
+  await page.getByRole('link',{name:'预览小事清单'}).click();
   await expect(page.frameLocator('iframe[title="应用实时预览"]').locator('body')).toContainText('小事');
   await expect(input(page)).toBeDisabled();
 });
@@ -97,7 +98,7 @@ test('syntax errors show inline and recover after fixing code; standalone previe
   await page.getByRole('button',{name:'代码',exact:true}).click();await page.locator('.cm-content').fill('export default function App(){return <h1>预览已恢复</h1>}');
   await page.getByRole('button',{name:'预览',exact:true}).click();await expect(page.frameLocator('iframe[title="应用实时预览"]').getByRole('heading',{name:'预览已恢复'})).toBeVisible();
   await page.getByRole('button',{name:'保存',exact:true}).click();await expect(page.locator('.status-pill')).toHaveText('v2');
-  const popupPromise=page.waitForEvent('popup');await page.getByRole('link',{name:'独立预览 ↗'}).click();const popup=await popupPromise;
+  const popupPromise=page.waitForEvent('popup');await page.getByRole('link',{name:'独立预览'}).click();const popup=await popupPromise;
   await expect(popup.getByRole('heading',{name:'预览已恢复'})).toBeVisible();await popup.close();
 });
 test('a different user cannot read or modify an owned project',async({page,browser})=>{
@@ -115,7 +116,7 @@ test('a different user cannot read or modify an owned project',async({page,brows
 test('logout clears the app session and protected pages require login again',async({page})=>{
   await create(page,'退出测试');const url=page.url();await page.getByRole('link',{name:'返回项目'}).click();
   await page.getByRole('button',{name:'退出登录',exact:true}).click();
-  await expect(page.getByRole('button',{name:'注册 / 登录',exact:true})).toBeVisible();
+  await expect(page.getByRole('link',{name:'登录',exact:true})).toBeVisible();
   await page.goto(url);await expect(page).toHaveURL('http://localhost:3001/');
   expect((await page.request.get('/api/projects')).status()).toBe(401);
 });
@@ -123,8 +124,8 @@ test('logout clears the app session and protected pages require login again',asy
 anonymous('Google login requests account selection and keeps the draft before redirect',async({page})=>{
   await page.route('http://localhost:54329/auth/v1/authorize**',route=>route.fulfill({contentType:'text/html',body:'<h1>测试授权入口</h1>'}));
   await page.goto('/');await page.getByRole('textbox',{name:'描述你的应用'}).fill('登录后继续的需求');
-  await page.getByRole('button',{name:'注册 / 登录',exact:true}).click();
-  await page.getByRole('button',{name:'使用 Google 注册 / 登录'}).click();
+  await page.getByRole('link',{name:'登录',exact:true}).click();
+  await page.getByRole('button',{name:'使用 Google 登录'}).click();
   await expect(page).toHaveURL(/\/auth\/v1\/authorize/);
   const url=new URL(page.url());expect(url.searchParams.get('provider')).toBe('google');expect(url.searchParams.get('prompt')).toBe('select_account');
   expect(url.searchParams.get('redirect_to')).toBe('http://localhost:3001/auth/callback');

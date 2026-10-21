@@ -1,10 +1,9 @@
 import { expect } from '@playwright/test';
 import { test } from '../support/auth';
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('textbox', { name: '描述你的应用' }).fill(`E2E ${test.info().title}`);
-  await page.getByRole('button', { name: '创建应用', exact: true }).click();
-  await expect(page).toHaveURL(/\/projects\/[a-f0-9-]+$/);
+  const response=await page.request.post('/api/projects',{data:{name:`E2E ${test.info().title}`}});
+  expect(response.status()).toBe(201);
+  await page.goto(`/projects/${(await response.json()).project.id}`);
 });
 async function send(page: import('@playwright/test').Page, prompt: string) {
   await page.getByRole('textbox', { name: '给构建助手发消息' }).fill(prompt);

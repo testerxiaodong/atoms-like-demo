@@ -1,15 +1,21 @@
 import { Home } from "@/components/home";
 import { hasSupabase } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-export default async function Page({ searchParams }: {
-  searchParams: Promise<{ error?: string }>;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ resume?: string; example?: string }>;
 }) {
-  const authError = (await searchParams).error === "auth";
-  if (hasSupabase()) {
-    const db = await createClient();
-    const { data } = await db.auth.getUser();
-    if (data.user) redirect("/projects");
-  }
-  return <Home configured={hasSupabase()} authError={authError} />;
+  const params = await searchParams;
+  const user = hasSupabase()
+    ? (await (await createClient()).auth.getUser()).data.user
+    : null;
+  return (
+    <Home
+      configured={hasSupabase()}
+      signedIn={!!user}
+      resume={params.resume === "1"}
+      exampleId={params.example}
+    />
+  );
 }
