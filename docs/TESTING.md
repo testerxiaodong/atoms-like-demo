@@ -116,3 +116,5 @@ npm run test:http:cloud:cleanup -- cloud-test-results/cloud-<运行ID>.json
 `tests/components/home.test.tsx` 覆盖重复点击只创建一次、创建失败保留草稿、登录注册的 Google 选账号参数；`tests/components/workspace.test.tsx` 验证 React StrictMode 下只消费一次待执行任务，以及已有活跃任务不自动重发。OAuth 回调单独验证允许的本地跳转和拒绝外部重定向。
 
 这组浏览器 OAuth 回归使用隔离认证服务，验证应用衔接；正式发布仍需按上面的清单验证真实 Google 授权。
+
+生产演示模式的匿名预览权限由 `tests/integration/demo-auth.test.ts` 覆盖：4 个内置示例均可预览，修改源码或添加额外文件时匿名请求返回 401。

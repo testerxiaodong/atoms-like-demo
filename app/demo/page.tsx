@@ -11,8 +11,8 @@ export default async function Demo({
     <Workspace
       isDemo
       initialProject={{
-        id: "demo",
-        owner_id: "demo",
+        id: example?.id || "tasks",
+        owner_id: example?.id || "tasks",
         name: example?.name || "小事清单",
         working_files: example?.files || demoFiles,
         template_version: TEMPLATE_VERSION,

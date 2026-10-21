@@ -356,7 +356,7 @@ export function Workspace({
         <div className="header-actions">
           <span className="save-status">
             {isDemo
-              ? "修改仅在本次体验中保留"
+              ? "交互状态仅在本次体验中保留"
               : selected
                 ? `查看 v${selected.number}`
                 : dirty
@@ -394,14 +394,19 @@ export function Workspace({
               <h2>一起把想法做出来。</h2>
               <p>
                 {isDemo
-                  ? "这是一个预置示例。试试右侧的交互，也可以切换到代码，修改文字与样式。"
+                  ? "这是一个预置示例。试试右侧的交互，也可以切换到代码查看实现。"
                   : "告诉我你想构建什么，我会生成代码，并在右侧展示应用。你可以继续对话迭代。"}
               </p>
             </div>
             {isDemo && (
               <div className="demo-note">
                 <span>✦ 示例体验</span>
-                <p>点击右侧按钮体验作品。代码编辑会即时更新预览，刷新页面可恢复原始示例。</p>
+                <Link href={`/?example=${project.id}`} className="muted-link">
+                  基于此示例创建
+                </Link>
+                <p>
+                  点击右侧按钮体验作品，刷新页面可恢复初始状态。创建自己的项目后即可编辑源码。
+                </p>
                 <small>
                   此示例没有调用 AI，也不会保存到云端。登录后可创建自己的项目。
                 </small>
@@ -602,7 +607,7 @@ export function Workspace({
               onChange={onChange}
               tab={tab}
               mobile={mobile}
-              readOnly={locked || !!selected}
+              readOnly={locked || !!selected || isDemo}
             />
           </div>
           <div className="preview-footer">

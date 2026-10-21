@@ -27,3 +27,13 @@ it("rejects missing or invalid authentication", async () => {
     await expect(authenticated()).rejects.toMatchObject({ status: 401 });
   }
 });
+it('allows exact bundled examples anonymously in hosted mode but rejects modified or extra source', async()=>{
+ mocks.getUser.mockResolvedValue({data:{user:null},error:null});
+ const {POST}=await import('@/app/api/preview/route');
+ const {examples}=await import('@/lib/templates/examples');
+ const request=(files:Record<string,string>)=>new Request('https://demo.example/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files})});
+ for(const example of examples){const response=await POST(request(example.files));expect(response.status).toBe(200);expect((await response.json()).html).toContain('id="root"');}
+ const modified={...examples[0].files,'/App.tsx':'export default function App(){return <h1>custom</h1>}'};
+ expect((await POST(request(modified))).status).toBe(401);
+ expect((await POST(request({...examples[0].files,'/extra.ts':'export const x=1'}))).status).toBe(401);
+});
